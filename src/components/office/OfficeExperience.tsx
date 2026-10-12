@@ -12,6 +12,7 @@ import { AdminPanel } from "./panels/AdminPanel";
 import { TouchPad } from "./ui/TouchPad";
 import { InteractPrompt } from "./ui/InteractPrompt";
 import { JrpgDialog } from "./ui/JrpgDialog";
+import { useOnboardingOptional } from "@/components/onboarding/onboarding-context";
 
 const OfficeScene = dynamic(
   () => import("./OfficeScene").then((m) => m.OfficeScene),
@@ -54,12 +55,14 @@ export function OfficeExperience({
   locale?: "vi" | "en";
 }) {
   const router = useRouter();
+  const onboarding = useOnboardingOptional();
   const t = useMemo(() => officeCopy(locale), [locale]);
   const [active, setActive] = useState<OfficeStation | null>(
     initialStation && initialStation !== "vetc" ? initialStation : null,
   );
   const [near, setNear] = useState<Interactable | null>(null);
   const [introDone, setIntroDone] = useState(false);
+  const movementLocked = Boolean(active) || Boolean(onboarding?.locksOffice);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -92,7 +95,7 @@ export function OfficeExperience({
     <div className="relative min-h-[calc(100vh-4.5rem)] flex-1 bg-tasco-deep">
       <div className="absolute inset-0">
         <OfficeScene
-          locked={Boolean(active)}
+          locked={movementLocked}
           nearId={near?.id ?? null}
           onNear={onNear}
           onInteract={onInteract}
@@ -105,11 +108,11 @@ export function OfficeExperience({
         </div>
       </div>
 
-      {near && !active && (
+      {near && !active && !onboarding?.locksOffice && (
         <InteractPrompt text={`${t.hintNear} — ${t.stations[near.id].name}`} />
       )}
 
-      <TouchPad />
+      {!onboarding?.locksOffice && <TouchPad />}
 
       {active && stationCopy && (
         <div className="absolute inset-0 z-30 flex items-end justify-center bg-tasco-deep/40 p-3 backdrop-blur-[2px] sm:items-center sm:p-6">
@@ -136,11 +139,16 @@ export function OfficeExperience({
                 <CsPanel
                   customerId={customerId}
                   customerName={customerName}
+                  locale={locale}
                   onClose={() => setActive(null)}
                 />
               )}
               {introDone && active === "claims" && (
-                <ClaimsPanel claims={claims} onClose={() => setActive(null)} />
+                <ClaimsPanel
+                  claims={claims}
+                  locale={locale}
+                  onClose={() => setActive(null)}
+                />
               )}
               {introDone && active === "admin" && (
                 <AdminPanel

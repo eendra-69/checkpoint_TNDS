@@ -8,11 +8,14 @@ import { maskCustomer } from "@/lib/masking";
 import { daysUntil, formatVnd } from "@/lib/utils";
 import { runRenewalCampaign } from "@/app/actions/campaign";
 import { getDemoCustomerId } from "@/lib/data/seed";
+import { getLocale } from "@/lib/i18n/locale";
+import { getDictionary } from "@/lib/i18n/dictionaries";
 
 export default async function OpsPage() {
   const auth = await requirePermission("ops:view");
   const session = await getOrCreateSession(auth.sessionId);
   const lastCampaign = session.campaigns[0];
+  const dict = getDictionary(await getLocale());
 
   const rows = session.scores.slice(0, 25).map((score) => {
     const customer = session.customers.find((c) => c.id === score.customerId)!;
@@ -28,8 +31,8 @@ export default async function OpsPage() {
 
   return (
     <AppShell
-      title="Lead scoring"
-      subtitle="Transparent rule-based scores with next-best action. Campaigns auto-exclude customers without consent."
+      title={dict.ops.title}
+      subtitle={dict.ops.subtitle}
       compact
     >
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">

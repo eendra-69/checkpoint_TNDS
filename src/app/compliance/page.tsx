@@ -3,10 +3,13 @@ import { Badge } from "@/components/ui/badge";
 import { requirePermission } from "@/lib/auth";
 import { getOrCreateSession } from "@/lib/session";
 import { maskCustomer } from "@/lib/masking";
+import { getLocale } from "@/lib/i18n/locale";
+import { getDictionary } from "@/lib/i18n/dictionaries";
 
 export default async function CompliancePage() {
   const auth = await requirePermission("compliance:view");
   const session = await getOrCreateSession(auth.sessionId);
+  const dict = getDictionary(await getLocale());
 
   const consentRows = session.customers.slice(0, 30).map((c) => ({
     customer: maskCustomer(c, auth.persona, []),
@@ -15,8 +18,8 @@ export default async function CompliancePage() {
 
   return (
     <AppShell
-      title="Compliance"
-      subtitle="Consent ledger and append-only audit log. Read-only for this persona."
+      title={dict.compliance.title}
+      subtitle={dict.compliance.subtitle}
     >
       {(session.claims?.length ?? 0) > 0 && (
         <section className="mb-6 rounded-2xl border bg-card shadow-sm">

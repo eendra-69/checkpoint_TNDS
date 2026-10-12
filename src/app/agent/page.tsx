@@ -10,16 +10,19 @@ import {
   revealPii,
   sendRenewalLink,
 } from "@/app/actions/telesales";
+import { getLocale } from "@/lib/i18n/locale";
+import { getDictionary } from "@/lib/i18n/dictionaries";
 
 export default async function AgentPage() {
   const auth = await requirePermission("agent:view");
   const session = await getOrCreateSession(auth.sessionId);
   const queue = session.handovers.filter((h) => h.status !== "resolved");
+  const dict = getDictionary(await getLocale());
 
   return (
     <AppShell
-      title="Telesales console"
-      subtitle="Warm AI handovers with summaries. Send a renewal link — customer confirms and pays themselves."
+      title={dict.agent.title}
+      subtitle={dict.agent.subtitle}
       compact
     >
       {queue.length === 0 ? (

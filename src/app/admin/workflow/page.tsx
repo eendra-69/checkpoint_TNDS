@@ -3,11 +3,14 @@ import { WorkflowCanvas } from "@/components/workflow/workflow-canvas";
 import { requirePermission } from "@/lib/auth";
 import { getOrCreateSession } from "@/lib/session";
 import type { CaseState } from "@/lib/types";
+import { getLocale } from "@/lib/i18n/locale";
+import { getDictionary } from "@/lib/i18n/dictionaries";
 
 export default async function WorkflowPage() {
   await requirePermission("workflow:view");
   const auth = await requirePermission("workflow:view");
   const session = await getOrCreateSession(auth.sessionId);
+  const dict = getDictionary(await getLocale());
 
   const counts: Record<string, number> = {};
   for (const state of Object.values(session.caseStates) as CaseState[]) {
@@ -16,8 +19,8 @@ export default async function WorkflowPage() {
 
   return (
     <AppShell
-      title="Workflow visualizer"
-      subtitle="Process, states and schema — generated from the same code the app runs. Drag nodes, click for details, fit to view."
+      title={dict.workflow.title}
+      subtitle={dict.workflow.subtitle}
     >
       <WorkflowCanvas counts={counts} />
     </AppShell>

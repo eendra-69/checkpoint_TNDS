@@ -5,6 +5,8 @@ import { PERSONAS } from "@/lib/rbac";
 import { getDemoCustomerId } from "@/lib/data/seed";
 import type { DemoCustomerId, PersonaId } from "@/lib/types";
 import { Button } from "@/components/ui/button";
+import { getLocale } from "@/lib/i18n/locale";
+import { getDictionary } from "@/lib/i18n/dictionaries";
 
 const CUSTOMERS: {
   key: DemoCustomerId;
@@ -44,16 +46,17 @@ export default async function LoginPage({
   searchParams: Promise<{ next?: string }>;
 }) {
   const { next } = await searchParams;
+  const locale = await getLocale();
+  const dict = getDictionary(locale);
 
   return (
     <MarketingShell>
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
         <h1 className="font-display text-3xl font-bold tracking-tight text-tasco-deep sm:text-4xl">
-          Sign in as…
+          {dict.login.title}
         </h1>
         <p className="mt-2 max-w-2xl text-muted-foreground">
-          No passwords — pick a persona. Server-side RBAC still enforces every
-          screen, API, and AI tool.
+          {dict.login.subtitle}
         </p>
 
         <div className="mt-8 grid gap-6 lg:grid-cols-[1.1fr_1fr]">
@@ -68,9 +71,11 @@ export default async function LoginPage({
               />
               <div className="absolute inset-0 bg-gradient-to-t from-tasco-deep/80 to-transparent" />
               <div className="absolute bottom-4 left-5 text-white">
-                <div className="font-display text-xl font-semibold">Customer</div>
+                <div className="font-display text-xl font-semibold">
+                  {dict.home.personaCustomer}
+                </div>
                 <p className="text-sm text-white/80">
-                  Opens in Virtual Office by default
+                  {dict.login.customerOffice}
                 </p>
               </div>
             </div>
@@ -132,7 +137,7 @@ export default async function LoginPage({
                         {p.description}
                       </p>
                       <Button type="submit" className="mt-3 w-full" size="sm">
-                        Continue
+                        {dict.login.continue}
                       </Button>
                     </div>
                   </form>

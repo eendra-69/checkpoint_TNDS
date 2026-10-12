@@ -1,7 +1,7 @@
-export function DemoWatermark() {
+export function DemoWatermark({ label }: { label?: string }) {
   return (
     <div className="demo-watermark" aria-hidden>
-      <span>DEMO — synthetic data</span>
+      <span>{label ?? "DEMO — synthetic data"}</span>
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { getOrCreateSession } from "@/lib/session";
 import { getDemoCustomerId } from "@/lib/data/seed";
 import { redirect } from "next/navigation";
 import type { OfficeStation } from "@/components/office/world/map";
+import { getLocale } from "@/lib/i18n/locale";
 
 export default async function OfficePage({
   searchParams,
@@ -25,6 +26,7 @@ export default async function OfficePage({
   const policy = session.policies.find((p) => p.customerId === customerId)!;
   const vehicle = session.vehicles.find((v) => v.id === policy.vehicleId)!;
   const claims = session.claims.filter((c) => c.customerId === customerId);
+  const locale = await getLocale();
 
   const allowed: OfficeStation[] = ["cs", "claims", "admin", "vetc", "reception"];
   const initialStation =
@@ -43,6 +45,7 @@ export default async function OfficePage({
         consent={customer.consent}
         certificateId={policy.certificateId}
         initialStation={initialStation}
+        locale={locale}
       />
     </AppShell>
   );

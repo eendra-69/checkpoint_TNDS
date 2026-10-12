@@ -6,6 +6,8 @@ import { getOrCreateSession } from "@/lib/session";
 import { formatVnd } from "@/lib/utils";
 import { notFound } from "next/navigation";
 import QRCode from "qrcode";
+import { getLocale } from "@/lib/i18n/locale";
+import { getDictionary } from "@/lib/i18n/dictionaries";
 
 export default async function VerifyPage({
   params,
@@ -14,13 +16,16 @@ export default async function VerifyPage({
 }) {
   const { certId } = await params;
   const auth = await getAuth();
+  const locale = await getLocale();
+  const dict = getDictionary(locale);
+
   if (!auth) {
     return (
-      <AppShell title="Certificate verify">
+      <AppShell title={dict.verify.title}>
         <div className="rounded-2xl border bg-card p-6 text-sm">
-          Sign in to verify certificates from your demo session.{" "}
+          {dict.verify.signInNeeded}{" "}
           <a className="font-semibold text-tasco-sky" href="/login">
-            Sign in
+            {dict.verify.signIn}
           </a>
         </div>
       </AppShell>
@@ -36,10 +41,7 @@ export default async function VerifyPage({
   const qr = await QRCode.toDataURL(verifyUrl, { margin: 1, width: 180 });
 
   return (
-    <AppShell
-      title="Digital TNDS certificate"
-      subtitle="Instantly verifiable proof — impossible to leave at home."
-    >
+    <AppShell title={dict.verify.title} subtitle={dict.verify.subtitle}>
       <div className="relative mx-auto max-w-lg overflow-hidden rounded-2xl border shadow-lg">
         <Image
           src="/brand/cert-texture.jpg"
@@ -56,10 +58,12 @@ export default async function VerifyPage({
                   TASCO · TNDS
                 </div>
                 <div className="font-display text-xl font-semibold">
-                  Giấy chứng nhận điện tử
+                  {locale === "vi"
+                    ? "Giấy chứng nhận điện tử"
+                    : "Digital certificate"}
                 </div>
               </div>
-              <Badge tone="green">Valid</Badge>
+              <Badge tone="green">{dict.verify.valid}</Badge>
             </div>
           </div>
           <div className="space-y-4 bg-white/90 p-6 backdrop-blur-sm">
@@ -67,7 +71,9 @@ export default async function VerifyPage({
               <div>
                 <div className="text-xs text-muted-foreground">Certificate ID</div>
                 <div className="font-mono text-sm font-semibold">{cert.id}</div>
-                <div className="mt-3 text-xs text-muted-foreground">Vehicle</div>
+                <div className="mt-3 text-xs text-muted-foreground">
+                  {locale === "vi" ? "Xe" : "Vehicle"}
+                </div>
                 <div className="font-display text-lg font-semibold text-tasco-deep">
                   {cert.plate}
                 </div>
@@ -80,21 +86,21 @@ export default async function VerifyPage({
             </div>
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div className="rounded-xl bg-tasco-pale/70 p-3">
-                <div className="text-xs text-muted-foreground">Issued</div>
+                <div className="text-xs text-muted-foreground">{dict.verify.issued}</div>
                 <div className="font-medium">{cert.issuedAt.slice(0, 10)}</div>
               </div>
               <div className="rounded-xl bg-tasco-pale/70 p-3">
-                <div className="text-xs text-muted-foreground">Expires</div>
+                <div className="text-xs text-muted-foreground">{dict.verify.expires}</div>
                 <div className="font-medium">{cert.expiresAt.slice(0, 10)}</div>
               </div>
               <div className="rounded-xl bg-tasco-pale/70 p-3">
-                <div className="text-xs text-muted-foreground">Premium paid</div>
+                <div className="text-xs text-muted-foreground">{dict.verify.premium}</div>
                 <div className="font-medium tabular-nums">
                   {formatVnd(cert.premiumVnd)}
                 </div>
               </div>
               <div className="rounded-xl bg-tasco-pale/70 p-3">
-                <div className="text-xs text-muted-foreground">Insurer</div>
+                <div className="text-xs text-muted-foreground">{dict.verify.insurer}</div>
                 <div className="font-medium">{cert.insurer}</div>
               </div>
             </div>

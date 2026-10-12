@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
+import type { Locale } from "@/lib/i18n/locale";
 
 type Msg = { id: string; role: "assistant" | "user"; content: string };
 
@@ -9,16 +10,24 @@ export function CsPanel({
   customerId,
   customerName,
   onClose,
+  locale = "vi",
 }: {
   customerId: string;
   customerName: string;
   onClose: () => void;
+  locale?: Locale;
 }) {
   const opener = useMemo(
     () =>
-      `Xin chào ${customerName}!\n\nEm là CS ảo của Tasco tại Virtual Office. Em có thể giúp gia hạn TNDS, giải thích quyền lợi, hoặc kết nối nhân viên.`,
-    [customerName],
+      locale === "en"
+        ? `Hi ${customerName}!\n\nI'm Tasco's virtual CS at the Virtual Office. I can help renew TNDS, explain coverage, or connect you to a human agent.`
+        : `Xin chào ${customerName}!\n\nEm là CS ảo của Tasco tại Virtual Office. Em có thể giúp gia hạn TNDS, giải thích quyền lợi, hoặc kết nối nhân viên.`,
+    [customerName, locale],
   );
+  const chips =
+    locale === "en"
+      ? ["renew", "TNDS coverage", "talk to human"]
+      : ["gia hạn", "quyền lợi TNDS", "gặp nhân viên"];
   const [messages, setMessages] = useState<Msg[]>([
     { id: "open", role: "assistant", content: opener },
   ]);
@@ -50,8 +59,12 @@ export function CsPanel({
         data.demo && data.text
           ? data.text
           : data.error
-            ? `Lỗi: ${data.error}`
-            : "Em đã nhận tin. Thử: gia hạn / quyền lợi / nhân viên.";
+            ? locale === "en"
+              ? `Error: ${data.error}`
+              : `Lỗi: ${data.error}`
+            : locale === "en"
+              ? "Got it. Try: renew / coverage / human."
+              : "Em đã nhận tin. Thử: gia hạn / quyền lợi / nhân viên.";
       setMessages((m) => [
         ...m,
         { id: data.id || crypto.randomUUID(), role: "assistant", content: reply },
@@ -62,7 +75,10 @@ export function CsPanel({
         {
           id: crypto.randomUUID(),
           role: "assistant",
-          content: "Mất kết nối — thử lại giúp em.",
+          content:
+            locale === "en"
+              ? "Connection lost — please try again."
+              : "Mất kết nối — thử lại giúp em.",
         },
       ]);
     } finally {
@@ -74,7 +90,9 @@ export function CsPanel({
     <div className="jrpg-window pointer-events-auto flex max-h-[70vh] w-full max-w-xl flex-col overflow-hidden">
       <div className="flex items-center justify-between border-b border-white/15 px-4 py-3">
         <div>
-          <div className="font-pixel text-sm tracking-wide text-tasco-sky">Tasco CS Desk</div>
+          <div className="font-pixel text-sm tracking-wide text-tasco-sky">
+            {locale === "en" ? "Tasco CS Desk" : "Bàn CS Tasco"}
+          </div>
           <div className="text-[11px] text-white/70">AI CS · Virtual Office</div>
         </div>
         <button
@@ -101,7 +119,7 @@ export function CsPanel({
       </div>
       <div className="border-t border-white/15 p-3">
         <div className="mb-2 flex flex-wrap gap-1">
-          {["gia hạn", "quyền lợi TNDS", "gặp nhân viên"].map((q) => (
+          {chips.map((q) => (
             <button
               key={q}
               type="button"
@@ -122,11 +140,11 @@ export function CsPanel({
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Hỏi CS…"
+            placeholder={locale === "en" ? "Ask CS…" : "Hỏi CS…"}
             className="h-10 flex-1 rounded-xl border border-white/20 bg-black/30 px-3 text-sm text-white outline-none focus:ring-2 focus:ring-tasco-sky"
           />
           <Button type="submit" disabled={busy}>
-            Gửi
+            {locale === "en" ? "Send" : "Gửi"}
           </Button>
         </form>
       </div>

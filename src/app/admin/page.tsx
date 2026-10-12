@@ -14,17 +14,20 @@ import { PROVIDERS, localProvidersDisabled } from "@/lib/llm/providers";
 import { saveLlmSettings, togglePermission } from "@/app/actions/admin";
 import type { PersonaId } from "@/lib/types";
 import { usingMemoryStore } from "@/lib/session";
+import { getLocale } from "@/lib/i18n/locale";
+import { getDictionary } from "@/lib/i18n/dictionaries";
 
 export default async function AdminPage() {
   const auth = await requirePermission("settings:manage");
   const session = await getOrCreateSession(auth.sessionId);
   const localDisabled = localProvidersDisabled();
   const settings = session.settings;
+  const dict = getDictionary(await getLocale());
 
   return (
     <AppShell
-      title="Admin settings"
-      subtitle="AI providers, voice keys, and editable RBAC matrix (per demo session)."
+      title={dict.admin.title}
+      subtitle={dict.admin.subtitle}
     >
       <div className="mb-4 flex flex-wrap gap-2">
         <Badge tone={usingMemoryStore() ? "warn" : "green"}>

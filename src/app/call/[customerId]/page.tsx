@@ -3,6 +3,8 @@ import { VoiceCall } from "@/components/voice/voice-call";
 import { requirePermission } from "@/lib/auth";
 import { getOrCreateSession } from "@/lib/session";
 import { notFound } from "next/navigation";
+import { getLocale } from "@/lib/i18n/locale";
+import { getDictionary } from "@/lib/i18n/dictionaries";
 
 export default async function CallPage({
   params,
@@ -19,12 +21,10 @@ export default async function CallPage({
   const hasEleven =
     Boolean(session.settings.elevenLabsApiKey) ||
     Boolean(process.env.ELEVENLABS_API_KEY);
+  const dict = getDictionary(await getLocale());
 
   return (
-    <AppShell
-      title="AI voice bot"
-      subtitle="Consent-based call. ElevenLabs if a key is set; otherwise free Web Speech."
-    >
+    <AppShell title={dict.call.title} subtitle={dict.call.subtitle}>
       <VoiceCall
         customerId={customer.id}
         customerName={customer.fullNameVi}

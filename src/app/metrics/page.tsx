@@ -2,10 +2,13 @@ import { AppShell } from "@/components/app-shell";
 import { Badge } from "@/components/ui/badge";
 import { requirePermission } from "@/lib/auth";
 import { getOrCreateSession } from "@/lib/session";
+import { getLocale } from "@/lib/i18n/locale";
+import { getDictionary } from "@/lib/i18n/dictionaries";
 
 export default async function MetricsPage() {
   const auth = await requirePermission("metrics:view");
   const session = await getOrCreateSession(auth.sessionId);
+  const dict = getDictionary(await getLocale());
   const f = session.funnel;
 
   const cards = [
@@ -24,8 +27,8 @@ export default async function MetricsPage() {
 
   return (
     <AppShell
-      title="Impact metrics"
-      subtitle="Funnel from this demo session plus stated assumptions for the pitch."
+      title={dict.metrics.title}
+      subtitle={dict.metrics.subtitle}
       compact
     >
       <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">

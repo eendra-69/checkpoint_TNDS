@@ -4,7 +4,16 @@ import { switchCustomerMode } from "@/app/actions/mode";
 import type { CustomerUiMode } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-export function ModeToggle({ mode }: { mode: CustomerUiMode }) {
+export function ModeToggle({
+  mode,
+  labels,
+}: {
+  mode: CustomerUiMode;
+  labels?: { classic: string; office: string };
+}) {
+  const classic = labels?.classic ?? "Classic";
+  const office = labels?.office ?? "Virtual Office";
+
   return (
     <div className="inline-flex rounded-full border border-white/20 bg-white/10 p-1 text-xs font-semibold backdrop-blur">
       <button
@@ -17,7 +26,7 @@ export function ModeToggle({ mode }: { mode: CustomerUiMode }) {
             : "text-white/80 hover:text-white",
         )}
       >
-        Classic
+        {classic}
       </button>
       <button
         type="button"
@@ -29,7 +38,7 @@ export function ModeToggle({ mode }: { mode: CustomerUiMode }) {
             : "text-white/80 hover:text-white",
         )}
       >
-        Virtual Office
+        {office}
       </button>
     </div>
   );

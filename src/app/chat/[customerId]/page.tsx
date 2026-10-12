@@ -2,6 +2,8 @@ import { AppShell } from "@/components/app-shell";
 import { RenewalChat } from "@/components/chat/renewal-chat";
 import { requirePermission } from "@/lib/auth";
 import { getOrCreateSession } from "@/lib/session";
+import { getLocale } from "@/lib/i18n/locale";
+import { getDictionary } from "@/lib/i18n/dictionaries";
 import { notFound, redirect } from "next/navigation";
 
 export default async function ChatPage({
@@ -24,12 +26,11 @@ export default async function ChatPage({
 
   const policy = session.policies.find((p) => p.customerId === customerId)!;
   const vehicle = session.vehicles.find((v) => v.id === policy.vehicleId)!;
+  const locale = await getLocale();
+  const dict = getDictionary(locale);
 
   return (
-    <AppShell
-      title="Zalo renewal chat"
-      subtitle="Simulated Official Account + ZNS. Regulated premium only — no discounts."
-    >
+    <AppShell title={dict.chat.title} subtitle={dict.chat.subtitle}>
       <RenewalChat
         customerId={customer.id}
         customerName={customer.fullNameVi}
@@ -38,6 +39,8 @@ export default async function ChatPage({
         premiumVnd={policy.premiumVnd}
         incomplete={vehicle.incomplete}
         initialCertificateId={policy.certificateId}
+        locale={locale}
+        labels={dict.chat}
       />
     </AppShell>
   );

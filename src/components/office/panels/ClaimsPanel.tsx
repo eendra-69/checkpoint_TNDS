@@ -9,13 +9,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { Claim } from "@/lib/types";
+import type { Locale } from "@/lib/i18n/locale";
 
 async function fileToDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => {
       const result = String(reader.result || "");
-      // Soft compress: if huge, keep prefix only for demo storage
       resolve(result.length > 160_000 ? result.slice(0, 160_000) : result);
     };
     reader.onerror = reject;
@@ -26,14 +26,17 @@ async function fileToDataUrl(file: File): Promise<string> {
 export function ClaimsPanel({
   claims,
   onClose,
+  locale = "vi",
 }: {
   claims: Claim[];
   onClose: () => void;
+  locale?: Locale;
 }) {
   const [note, setNote] = useState("");
   const [photos, setPhotos] = useState<string[]>([]);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const en = locale === "en";
 
   async function onFiles(files: FileList | null) {
     if (!files) return;
@@ -48,7 +51,7 @@ export function ClaimsPanel({
   function submit() {
     setError(null);
     if (photos.length < 1) {
-      setError("Upload ít nhất 1 ảnh xe.");
+      setError(en ? "Upload at least 1 vehicle photo." : "Upload ít nhất 1 ảnh xe.");
       return;
     }
     startTransition(async () => {
@@ -62,9 +65,11 @@ export function ClaimsPanel({
     <div className="jrpg-window pointer-events-auto max-h-[75vh] w-full max-w-xl overflow-y-auto">
       <div className="flex items-center justify-between border-b border-white/15 px-4 py-3">
         <div>
-          <div className="font-pixel text-sm tracking-wide text-tasco-sky">Claims Desk</div>
+          <div className="font-pixel text-sm tracking-wide text-tasco-sky">
+            {en ? "Claims Desk" : "Bàn bồi thường"}
+          </div>
           <div className="text-[11px] text-white/70">
-            Upload ảnh xe · hồ sơ demo
+            {en ? "Upload photos · demo claim" : "Upload ảnh xe · hồ sơ demo"}
           </div>
         </div>
         <button
@@ -79,7 +84,7 @@ export function ClaimsPanel({
       <div className="space-y-4 p-4 text-white">
         <div>
           <label className="text-xs font-semibold uppercase tracking-wide text-white/60">
-            Ảnh xe (1–3)
+            {en ? "Vehicle photos (1–3)" : "Ảnh xe (1–3)"}
           </label>
           <input
             type="file"
@@ -105,13 +110,17 @@ export function ClaimsPanel({
 
         <div>
           <label className="text-xs font-semibold uppercase tracking-wide text-white/60">
-            Mô tả
+            {en ? "Description" : "Mô tả"}
           </label>
           <textarea
             value={note}
             onChange={(e) => setNote(e.target.value)}
             rows={3}
-            placeholder="Vd: Va chạm nhẹ phần cản trước…"
+            placeholder={
+              en
+                ? "e.g. Light front-bumper scrape…"
+                : "Vd: Va chạm nhẹ phần cản trước…"
+            }
             className="mt-2 w-full rounded-xl border border-white/20 bg-black/30 px-3 py-2 text-sm text-white outline-none focus:ring-2 focus:ring-tasco-sky"
           />
         </div>
@@ -119,14 +128,22 @@ export function ClaimsPanel({
         {error && <p className="text-sm text-red-300">{error}</p>}
 
         <Button type="button" onClick={submit} disabled={pending}>
-          {pending ? "Đang gửi…" : "Gửi hồ sơ bồi thường"}
+          {pending
+            ? en
+              ? "Submitting…"
+              : "Đang gửi…"
+            : en
+              ? "Submit claim"
+              : "Gửi hồ sơ bồi thường"}
         </Button>
 
         <div className="border-t border-white/15 pt-4">
-          <h3 className="font-pixel font-semibold text-tasco-sky">Hồ sơ của bạn</h3>
+          <h3 className="font-pixel font-semibold text-tasco-sky">
+            {en ? "Your claims" : "Hồ sơ của bạn"}
+          </h3>
           {claims.length === 0 ? (
             <p className="mt-2 text-sm text-white/60">
-              Chưa có claim nào.
+              {en ? "No claims yet." : "Chưa có claim nào."}
             </p>
           ) : (
             <ul className="mt-2 space-y-2">
@@ -153,7 +170,11 @@ export function ClaimsPanel({
                         type="button"
                         onClick={() =>
                           startTransition(() =>
-                            advanceClaim(c.id, "need_info", "Cần thêm ảnh"),
+                            advanceClaim(
+                              c.id,
+                              "need_info",
+                              en ? "Need more photos" : "Cần thêm ảnh",
+                            ),
                           )
                         }
                       >

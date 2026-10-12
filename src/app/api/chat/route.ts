@@ -7,6 +7,7 @@ import { getModel } from "@/lib/llm/resolve";
 import { demoRenewalReply } from "@/lib/agent/demo-reply";
 import { appendAudit } from "@/lib/audit";
 import { nanoid } from "nanoid";
+import { getLocale } from "@/lib/i18n/locale";
 
 export const maxDuration = 60;
 
@@ -32,6 +33,10 @@ export async function POST(req: Request) {
   if (!customer) {
     return Response.json({ error: "Customer not found" }, { status: 404 });
   }
+
+  // Keep agent language in sync with the UI locale toggle
+  const locale = await getLocale();
+  customer.preferredLanguage = locale;
 
   if (auth.persona === "customer" && auth.customerId) {
     const allowed = session.customers.find((c) => c.demoKey === auth.customerId);

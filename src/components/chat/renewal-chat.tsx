@@ -1,12 +1,26 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatVnd } from "@/lib/utils";
+import type { Locale } from "@/lib/i18n/locale";
 
 type Msg = { id: string; role: "assistant" | "user"; content: string };
+
+type ChatLabels = {
+  classic: string;
+  profileOk: string;
+  needsConfirm: string;
+  openCheckout: string;
+  vetcEntry: string;
+  virtualOffice: string;
+  viewCert: string;
+  placeholder: string;
+  send: string;
+  chips: string[];
+};
 
 export function RenewalChat({
   customerId,
@@ -16,6 +30,8 @@ export function RenewalChat({
   premiumVnd,
   incomplete,
   initialCertificateId,
+  locale = "vi",
+  labels,
 }: {
   customerId: string;
   customerName: string;
@@ -24,23 +40,28 @@ export function RenewalChat({
   premiumVnd: number;
   incomplete: boolean;
   initialCertificateId?: string;
+  locale?: Locale;
+  labels: ChatLabels;
 }) {
-  const [lang, setLang] = useState<"vi" | "en">("vi");
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [showPay, setShowPay] = useState(false);
   const [certificateId, setCertificateId] = useState(initialCertificateId);
   const opener = useMemo(
     () =>
-      lang === "vi"
+      locale === "vi"
         ? `Xin chào ${customerName},\n\nTNDS xe biển ${plate} sẽ hết hạn vào ${expiresAt.slice(0, 10)}. Phí quy định: ${formatVnd(premiumVnd)} (không giảm giá).\n\nĐây là tin nhắn ZNS mô phỏng. Em có thể giúp xác nhận xe và gia hạn ngay trong chat.`
         : `Hi ${customerName},\n\nTNDS for ${plate} expires on ${expiresAt.slice(0, 10)}. Regulated premium: ${formatVnd(premiumVnd)} (no discount).\n\nThis is a simulated Zalo ZNS. I can help confirm your vehicle and renew in chat.`,
-    [lang, customerName, plate, expiresAt, premiumVnd],
+    [locale, customerName, plate, expiresAt, premiumVnd],
   );
 
   const [messages, setMessages] = useState<Msg[]>([
     { id: "zns", role: "assistant", content: opener },
   ]);
+
+  useEffect(() => {
+    setMessages([{ id: "zns", role: "assistant", content: opener }]);
+  }, [opener]);
 
   async function send(text: string) {
     if (!text.trim() || busy) return;
@@ -95,7 +116,7 @@ export function RenewalChat({
             id: crypto.randomUUID(),
             role: "assistant",
             content:
-              lang === "vi"
+              locale === "vi"
                 ? "Em đã nhận tin. (Chế độ LLM streaming — thử lại hoặc dùng từ khoá: xác nhận / thanh toán / nhân viên)"
                 : "Got it. (LLM stream mode — try keywords: confirm / pay / human)",
           },
@@ -107,7 +128,10 @@ export function RenewalChat({
         {
           id: crypto.randomUUID(),
           role: "assistant",
-          content: "Network error — please try again.",
+          content:
+            locale === "vi"
+              ? "Lỗi mạng — vui lòng thử lại."
+              : "Network error — please try again.",
         },
       ]);
     } finally {
@@ -155,10 +179,7 @@ export function RenewalChat({
             </div>
             <div className="border-t bg-white p-2">
               <div className="mb-2 flex gap-1 overflow-x-auto">
-                {(lang === "vi"
-                  ? ["xác nhận", "cover", "thanh toán", "nhân viên"]
-                  : ["confirm", "cover", "pay", "human"]
-                ).map((q) => (
+                {labels.chips.map((q) => (
                   <button
                     key={q}
                     type="button"
@@ -179,11 +200,11 @@ export function RenewalChat({
                 <input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder={lang === "vi" ? "Nhập tin nhắn…" : "Type a message…"}
+                  placeholder={labels.placeholder}
                   className="h-10 flex-1 rounded-full border border-border bg-muted/40 px-3 text-sm outline-none focus:ring-2 focus:ring-zalo-blue"
                 />
                 <Button type="submit" size="sm" disabled={busy}>
-                  Send
+                  {labels.send}
                 </Button>
               </form>
             </div>
@@ -194,40 +215,35 @@ export function RenewalChat({
       <div className="space-y-4">
         <div className="rounded-2xl border bg-card p-5 shadow-sm">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge tone="sky">Classic chat</Badge>
-            <Badge>{incomplete ? "Needs confirmation" : "Profile OK"}</Badge>
-            <button
-              type="button"
-              onClick={() => setLang((l) => (l === "vi" ? "en" : "vi"))}
-              className="ml-auto text-xs font-semibold text-tasco-sky"
-            >
-              Lang: {lang.toUpperCase()}
-            </button>
+            <Badge tone="sky">{labels.classic}</Badge>
+            <Badge>{incomplete ? labels.needsConfirm : labels.profileOk}</Badge>
           </div>
           <h2 className="mt-3 font-display text-lg font-semibold text-tasco-deep">
             {customerName} · {plate}
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Regulated premium {formatVnd(premiumVnd)}. Expires {expiresAt.slice(0, 10)}.
+            {locale === "vi"
+              ? `Phí quy định ${formatVnd(premiumVnd)}. Hết hạn ${expiresAt.slice(0, 10)}.`
+              : `Regulated premium ${formatVnd(premiumVnd)}. Expires ${expiresAt.slice(0, 10)}.`}
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             <Button type="button" variant="secondary" onClick={() => setShowPay(true)}>
-              Open mock checkout
+              {labels.openCheckout}
             </Button>
             <Link href={`/vetc/${customerId}`}>
               <Button type="button" variant="outline">
-                VETC App entry
+                {labels.vetcEntry}
               </Button>
             </Link>
             <Link href="/office">
               <Button type="button" variant="outline">
-                Virtual Office
+                {labels.virtualOffice}
               </Button>
             </Link>
             {certificateId && (
               <Link href={`/verify/${certificateId}`}>
                 <Button type="button" variant="success">
-                  View certificate
+                  {labels.viewCert}
                 </Button>
               </Link>
             )}
@@ -241,7 +257,9 @@ export function RenewalChat({
               <Badge tone="green">Assumption: payment gateway</Badge>
             </div>
             <p className="mt-2 text-sm text-muted-foreground">
-              Amount locked to regulated premium — no discount field.
+              {locale === "vi"
+                ? "Số tiền khóa theo phí quy định — không có trường giảm giá."
+                : "Amount locked to regulated premium — no discount field."}
             </p>
             <div className="mt-4 flex items-center gap-4">
               <div className="flex h-28 w-28 items-center justify-center rounded-xl border-2 border-dashed border-tasco-navy/30 bg-tasco-pale font-mono text-xs">
@@ -256,10 +274,10 @@ export function RenewalChat({
                   className="mt-3"
                   onClick={() => {
                     setShowPay(false);
-                    send(lang === "vi" ? "thanh toán" : "pay now");
+                    send(locale === "vi" ? "thanh toán" : "pay now");
                   }}
                 >
-                  Simulate payment
+                  {locale === "vi" ? "Mô phỏng thanh toán" : "Simulate payment"}
                 </Button>
               </div>
             </div>

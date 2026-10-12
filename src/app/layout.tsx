@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Be_Vietnam_Pro, Outfit, VT323 } from "next/font/google";
 import { AssistantHost } from "@/components/assistant/assistant-host";
+import { getLocale } from "@/lib/i18n/locale";
 import "./globals.css";
 
 const beVietnam = Be_Vietnam_Pro({
@@ -28,10 +29,12 @@ export const metadata: Metadata = {
     "AI-assisted TNDS renewal journey for the GenAI Fund BeyondPilot × Tasco challenge",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const locale = await getLocale();
+
   return (
     <html
-      lang="en"
+      lang={locale}
       className={`${beVietnam.variable} ${outfit.variable} ${vt323.variable} h-full antialiased`}
     >
       <body className="min-h-full font-sans">
