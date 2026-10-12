@@ -71,10 +71,10 @@ export function CsPanel({
   }
 
   return (
-    <div className="dialogue-frame pointer-events-auto flex max-h-[70vh] w-full max-w-xl flex-col overflow-hidden rounded-2xl">
-      <div className="flex items-center justify-between border-b border-tasco-navy/15 bg-tasco-deep px-4 py-3 text-white">
+    <div className="jrpg-window pointer-events-auto flex max-h-[70vh] w-full max-w-xl flex-col overflow-hidden">
+      <div className="flex items-center justify-between border-b border-white/15 px-4 py-3">
         <div>
-          <div className="font-display text-sm tracking-wide">Tasco CS Desk</div>
+          <div className="font-pixel text-sm tracking-wide text-tasco-sky">Tasco CS Desk</div>
           <div className="text-[11px] text-white/70">AI CS · Virtual Office</div>
         </div>
         <button
@@ -85,28 +85,28 @@ export function CsPanel({
           Esc
         </button>
       </div>
-      <div className="flex-1 space-y-2 overflow-y-auto bg-tasco-pale/40 p-4">
+      <div className="flex-1 space-y-2 overflow-y-auto p-4">
         {messages.map((m) => (
           <div
             key={m.id}
             className={
               m.role === "user"
-                ? "ml-8 rounded-2xl bg-tasco-navy px-3 py-2 text-sm text-white"
-                : "mr-8 rounded-2xl border bg-white px-3 py-2 text-sm text-tasco-deep"
+                ? "ml-8 rounded-xl bg-tasco-sky/30 px-3 py-2 text-sm text-white"
+                : "mr-8 rounded-xl border border-white/20 bg-black/25 px-3 py-2 text-sm text-white"
             }
           >
             <div className="whitespace-pre-wrap">{m.content}</div>
           </div>
         ))}
       </div>
-      <div className="border-t bg-white p-3">
+      <div className="border-t border-white/15 p-3">
         <div className="mb-2 flex flex-wrap gap-1">
           {["gia hạn", "quyền lợi TNDS", "gặp nhân viên"].map((q) => (
             <button
               key={q}
               type="button"
               onClick={() => send(q)}
-              className="rounded-full bg-tasco-pale px-2.5 py-1 text-[11px] font-medium text-tasco-navy"
+              className="rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-medium text-white"
             >
               {q}
             </button>
@@ -123,7 +123,7 @@ export function CsPanel({
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Hỏi CS…"
-            className="h-10 flex-1 rounded-xl border border-border px-3 text-sm outline-none focus:ring-2 focus:ring-tasco-sky"
+            className="h-10 flex-1 rounded-xl border border-white/20 bg-black/30 px-3 text-sm text-white outline-none focus:ring-2 focus:ring-tasco-sky"
           />
           <Button type="submit" disabled={busy}>
             Gửi

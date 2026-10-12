@@ -2,13 +2,16 @@
 
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { CaseState, Claim, ConsentFlags } from "@/lib/types";
-import type { OfficeStation } from "./Stations";
-import { STATION_META } from "./Stations";
+import type { Interactable, OfficeStation } from "./world/map";
+import { officeCopy } from "./office-copy";
 import { CsPanel } from "./panels/CsPanel";
 import { ClaimsPanel } from "./panels/ClaimsPanel";
 import { AdminPanel } from "./panels/AdminPanel";
+import { TouchPad } from "./ui/TouchPad";
+import { InteractPrompt } from "./ui/InteractPrompt";
+import { JrpgDialog } from "./ui/JrpgDialog";
 
 const OfficeScene = dynamic(
   () => import("./OfficeScene").then((m) => m.OfficeScene),
@@ -16,11 +19,18 @@ const OfficeScene = dynamic(
     ssr: false,
     loading: () => (
       <div className="flex h-full items-center justify-center bg-tasco-deep text-white">
-        <div className="font-display tracking-wide">Loading Virtual Office…</div>
+        <div className="font-pixel tracking-wide">Loading Virtual Office…</div>
       </div>
     ),
   },
 );
+
+const PORTRAITS: Partial<Record<OfficeStation, string>> = {
+  cs: "/office/portrait-cs.png",
+  claims: "/office/portrait-claims.png",
+  reception: "/office/portrait-reception.png",
+  admin: "/office/portrait-reception.png",
+};
 
 export function OfficeExperience({
   customerId,
@@ -31,6 +41,7 @@ export function OfficeExperience({
   consent,
   certificateId,
   initialStation,
+  locale = "vi",
 }: {
   customerId: string;
   customerName: string;
@@ -40,80 +51,135 @@ export function OfficeExperience({
   consent: ConsentFlags;
   certificateId?: string;
   initialStation?: OfficeStation | null;
+  locale?: "vi" | "en";
 }) {
   const router = useRouter();
+  const t = useMemo(() => officeCopy(locale), [locale]);
   const [active, setActive] = useState<OfficeStation | null>(
-    initialStation || null,
+    initialStation && initialStation !== "vetc" ? initialStation : null,
   );
-  const [hint, setHint] = useState("Chọn bàn để bắt đầu · phím 1 / 2 / 3");
+  const [near, setNear] = useState<Interactable | null>(null);
+  const [introDone, setIntroDone] = useState(false);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setActive(null);
-      if (e.key === "1") setActive("cs");
-      if (e.key === "2") setActive("claims");
-      if (e.key === "3") setActive("admin");
-      if (e.key === "4") setActive("vetc");
+      if (e.key === "Escape") {
+        setActive(null);
+        setIntroDone(false);
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  function select(id: OfficeStation) {
-    if (id === "vetc") {
-      setHint("Chuyển sang Classic VETC…");
-      router.push(`/vetc/${customerId}`);
-      return;
-    }
-    setActive(id);
-    setHint(STATION_META[id].prompt);
-  }
+  const onNear = useCallback((it: Interactable | null) => setNear(it), []);
+
+  const onInteract = useCallback(
+    (it: Interactable) => {
+      if (it.id === "vetc") {
+        router.push(`/vetc/${customerId}`);
+        return;
+      }
+      setIntroDone(false);
+      setActive(it.id);
+    },
+    [customerId, router],
+  );
+
+  const stationCopy = active ? t.stations[active] : null;
 
   return (
     <div className="relative min-h-[calc(100vh-4.5rem)] flex-1 bg-tasco-deep">
       <div className="absolute inset-0">
-        <OfficeScene active={active} onSelect={select} />
+        <OfficeScene
+          locked={Boolean(active)}
+          nearId={near?.id ?? null}
+          onNear={onNear}
+          onInteract={onInteract}
+        />
       </div>
 
       <div className="pointer-events-none absolute inset-x-0 top-4 z-10 flex justify-center px-4">
-        <div className="office-prompt pointer-events-none rounded-full border border-white/20 bg-tasco-deep/70 px-4 py-2 text-sm font-medium text-white backdrop-blur">
-          {hint}
+        <div className="jrpg-window px-4 py-2 font-pixel text-xs text-white/90 sm:text-sm">
+          {near && !active ? t.stations[near.id].prompt : t.hintWalk}
         </div>
       </div>
 
-      <div className="pointer-events-none absolute bottom-4 left-4 z-10 hidden max-w-xs rounded-2xl border border-white/15 bg-tasco-deep/75 p-3 text-xs text-white/80 backdrop-blur sm:block">
-        <div className="font-display text-sm text-white">Tasco Virtual Office</div>
-        <p className="mt-1">
-          1 CS · 2 Claims · 3 Admin · 4 VETC · Esc đóng panel
-        </p>
-      </div>
+      {near && !active && (
+        <InteractPrompt text={`${t.hintNear} — ${t.stations[near.id].name}`} />
+      )}
 
-      {active && active !== "vetc" && (
-        <div className="absolute inset-0 z-20 flex items-end justify-center bg-tasco-deep/35 p-4 backdrop-blur-[2px] sm:items-center">
-          {active === "cs" && (
-            <CsPanel
-              customerId={customerId}
-              customerName={customerName}
-              onClose={() => setActive(null)}
-            />
-          )}
-          {active === "claims" && (
-            <ClaimsPanel claims={claims} onClose={() => setActive(null)} />
-          )}
-          {active === "admin" && (
-            <AdminPanel
-              customerId={customerId}
-              customerName={customerName}
-              plate={plate}
-              caseState={caseState}
-              claims={claims}
-              consent={consent}
-              certificateId={certificateId}
-              onClose={() => setActive(null)}
-              onOpenClaims={() => setActive("claims")}
-              onOpenCs={() => setActive("cs")}
-            />
-          )}
+      <TouchPad />
+
+      {active && stationCopy && (
+        <div className="absolute inset-0 z-30 flex items-end justify-center bg-tasco-deep/40 p-3 backdrop-blur-[2px] sm:items-center sm:p-6">
+          <div className="flex max-h-[85vh] w-full max-w-2xl flex-col gap-3 overflow-y-auto">
+            <div className="flex justify-end">
+              <button
+                type="button"
+                className="jrpg-window pointer-events-auto px-3 py-1 font-pixel text-xs text-white"
+                onClick={() => {
+                  setActive(null);
+                  setIntroDone(false);
+                }}
+              >
+                Esc
+              </button>
+            </div>
+            <JrpgDialog
+              name={stationCopy.name}
+              portrait={PORTRAITS[active]}
+              intro={stationCopy.intro}
+              onDone={() => setIntroDone(true)}
+            >
+              {introDone && active === "cs" && (
+                <CsPanel
+                  customerId={customerId}
+                  customerName={customerName}
+                  onClose={() => setActive(null)}
+                />
+              )}
+              {introDone && active === "claims" && (
+                <ClaimsPanel claims={claims} onClose={() => setActive(null)} />
+              )}
+              {introDone && active === "admin" && (
+                <AdminPanel
+                  customerId={customerId}
+                  customerName={customerName}
+                  plate={plate}
+                  caseState={caseState}
+                  claims={claims}
+                  consent={consent}
+                  certificateId={certificateId}
+                  onClose={() => setActive(null)}
+                  onOpenClaims={() => {
+                    setIntroDone(false);
+                    setActive("claims");
+                  }}
+                  onOpenCs={() => {
+                    setIntroDone(false);
+                    setActive("cs");
+                  }}
+                />
+              )}
+              {introDone && active === "reception" && (
+                <div className="jrpg-window pointer-events-auto p-4 text-sm text-white">
+                  <p className="text-white/80">
+                    {locale === "vi"
+                      ? "Đi tới bàn CS (phải), bồi thường (trái), hoặc bảng hồ sơ."
+                      : "Walk to CS (right), Claims (left), or the Admin board."}
+                  </p>
+                  <button
+                    type="button"
+                    className="mt-3 rounded-lg bg-tasco-sky px-3 py-2 font-pixel text-tasco-deep"
+                    onClick={() => setActive(null)}
+                  >
+                    OK
+                  </button>
+                </div>
+              )}
+            </JrpgDialog>
+          </div>
         </div>
       )}
     </div>

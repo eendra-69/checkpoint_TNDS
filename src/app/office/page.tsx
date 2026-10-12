@@ -4,7 +4,7 @@ import { requirePermission } from "@/lib/auth";
 import { getOrCreateSession } from "@/lib/session";
 import { getDemoCustomerId } from "@/lib/data/seed";
 import { redirect } from "next/navigation";
-import type { OfficeStation } from "@/components/office/Stations";
+import type { OfficeStation } from "@/components/office/world/map";
 
 export default async function OfficePage({
   searchParams,
@@ -26,7 +26,7 @@ export default async function OfficePage({
   const vehicle = session.vehicles.find((v) => v.id === policy.vehicleId)!;
   const claims = session.claims.filter((c) => c.customerId === customerId);
 
-  const allowed: OfficeStation[] = ["cs", "claims", "admin", "vetc"];
+  const allowed: OfficeStation[] = ["cs", "claims", "admin", "vetc", "reception"];
   const initialStation =
     stationParam && allowed.includes(stationParam as OfficeStation)
       ? (stationParam as OfficeStation)

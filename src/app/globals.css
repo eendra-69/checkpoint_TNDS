@@ -128,3 +128,24 @@ body {
     opacity: 1;
   }
 }
+
+.font-pixel {
+  font-family: var(--font-vt323), ui-monospace, monospace;
+  letter-spacing: 0.04em;
+}
+
+.jrpg-window {
+  border: 3px solid #ffffff;
+  border-radius: 12px;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--tasco-navy) 92%, black),
+      var(--tasco-deep)
+    );
+  box-shadow:
+    0 0 0 3px var(--tasco-deep),
+    0 0 0 5px color-mix(in srgb, var(--tasco-sky) 70%, white),
+    0 16px 40px color-mix(in srgb, black 45%, transparent);
+  color: #fff;
+}

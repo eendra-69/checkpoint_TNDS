@@ -59,10 +59,10 @@ export function ClaimsPanel({
   }
 
   return (
-    <div className="dialogue-frame pointer-events-auto max-h-[75vh] w-full max-w-xl overflow-y-auto rounded-2xl">
-      <div className="flex items-center justify-between border-b border-tasco-navy/15 bg-tasco-deep px-4 py-3 text-white">
+    <div className="jrpg-window pointer-events-auto max-h-[75vh] w-full max-w-xl overflow-y-auto">
+      <div className="flex items-center justify-between border-b border-white/15 px-4 py-3">
         <div>
-          <div className="font-display text-sm tracking-wide">Claims Desk</div>
+          <div className="font-pixel text-sm tracking-wide text-tasco-sky">Claims Desk</div>
           <div className="text-[11px] text-white/70">
             Upload ảnh xe · hồ sơ demo
           </div>
@@ -76,9 +76,9 @@ export function ClaimsPanel({
         </button>
       </div>
 
-      <div className="space-y-4 p-4">
+      <div className="space-y-4 p-4 text-white">
         <div>
-          <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <label className="text-xs font-semibold uppercase tracking-wide text-white/60">
             Ảnh xe (1–3)
           </label>
           <input
@@ -104,7 +104,7 @@ export function ClaimsPanel({
         </div>
 
         <div>
-          <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <label className="text-xs font-semibold uppercase tracking-wide text-white/60">
             Mô tả
           </label>
           <textarea
@@ -112,20 +112,20 @@ export function ClaimsPanel({
             onChange={(e) => setNote(e.target.value)}
             rows={3}
             placeholder="Vd: Va chạm nhẹ phần cản trước…"
-            className="mt-2 w-full rounded-xl border border-border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-tasco-sky"
+            className="mt-2 w-full rounded-xl border border-white/20 bg-black/30 px-3 py-2 text-sm text-white outline-none focus:ring-2 focus:ring-tasco-sky"
           />
         </div>
 
-        {error && <p className="text-sm text-destructive">{error}</p>}
+        {error && <p className="text-sm text-red-300">{error}</p>}
 
         <Button type="button" onClick={submit} disabled={pending}>
           {pending ? "Đang gửi…" : "Gửi hồ sơ bồi thường"}
         </Button>
 
-        <div className="border-t pt-4">
-          <h3 className="font-semibold text-tasco-deep">Hồ sơ của bạn</h3>
+        <div className="border-t border-white/15 pt-4">
+          <h3 className="font-pixel font-semibold text-tasco-sky">Hồ sơ của bạn</h3>
           {claims.length === 0 ? (
-            <p className="mt-2 text-sm text-muted-foreground">
+            <p className="mt-2 text-sm text-white/60">
               Chưa có claim nào.
             </p>
           ) : (
@@ -133,7 +133,7 @@ export function ClaimsPanel({
               {claims.map((c) => (
                 <li
                   key={c.id}
-                  className="rounded-xl border bg-tasco-pale/40 p-3 text-sm"
+                  className="rounded-xl border border-white/20 bg-black/25 p-3 text-sm"
                 >
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="font-mono text-xs font-semibold">
@@ -141,9 +141,9 @@ export function ClaimsPanel({
                     </span>
                     <Badge tone="sky">{c.status}</Badge>
                   </div>
-                  <p className="mt-1 text-muted-foreground">{c.note}</p>
+                  <p className="mt-1 text-white/70">{c.note}</p>
                   {c.triageNote && (
-                    <p className="mt-1 text-xs text-tasco-navy">{c.triageNote}</p>
+                    <p className="mt-1 text-xs text-tasco-sky">{c.triageNote}</p>
                   )}
                   <div className="mt-2 flex flex-wrap gap-2">
                     {c.status === "under_review" && (

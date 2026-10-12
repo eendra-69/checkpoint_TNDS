@@ -29,10 +29,10 @@ export function AdminPanel({
   onOpenCs: () => void;
 }) {
   return (
-    <div className="dialogue-frame pointer-events-auto max-h-[75vh] w-full max-w-xl overflow-y-auto rounded-2xl">
-      <div className="flex items-center justify-between border-b border-tasco-navy/15 bg-tasco-deep px-4 py-3 text-white">
+    <div className="jrpg-window pointer-events-auto max-h-[75vh] w-full max-w-xl overflow-y-auto">
+      <div className="flex items-center justify-between border-b border-white/15 px-4 py-3">
         <div>
-          <div className="font-display text-sm tracking-wide">Admin Board</div>
+          <div className="font-pixel text-sm tracking-wide text-tasco-sky">Admin Board</div>
           <div className="text-[11px] text-white/70">
             Theo dõi hồ sơ · quest log
           </div>

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { Be_Vietnam_Pro, Outfit } from "next/font/google";
+import { Be_Vietnam_Pro, Outfit, VT323 } from "next/font/google";
 import { AssistantHost } from "@/components/assistant/assistant-host";
 import "./globals.css";
 
@@ -16,6 +16,12 @@ const outfit = Outfit({
   weight: ["500", "600", "700", "800"],
 });
 
+const vt323 = VT323({
+  variable: "--font-vt323",
+  subsets: ["latin"],
+  weight: "400",
+});
+
 export const metadata: Metadata = {
   title: "TASCO Renewal Journey — BeyondPilot Demo",
   description:
@@ -26,7 +32,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${beVietnam.variable} ${outfit.variable} h-full antialiased`}
+      className={`${beVietnam.variable} ${outfit.variable} ${vt323.variable} h-full antialiased`}
     >
       <body className="min-h-full font-sans">
         {children}
