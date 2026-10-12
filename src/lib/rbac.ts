@@ -34,7 +34,7 @@ export const PERSONAS: Record<
     id: "customer",
     label: "Customer",
     description: "Driver renewing TNDS via Zalo / VETC / voice",
-    homePath: "/chat",
+    homePath: "/office",
   },
   telesales: {
     id: "telesales",
@@ -101,6 +101,7 @@ export const ROUTE_PERMISSIONS: { prefix: string; permission: Permission }[] = [
   { prefix: "/chat", permission: "chat:use" },
   { prefix: "/call", permission: "voice:use" },
   { prefix: "/vetc", permission: "chat:use" },
+  { prefix: "/office", permission: "chat:use" },
 ];
 
 export function resolvePermissions(

@@ -89,7 +89,6 @@ export function RenewalChat({
           },
         ]);
       } else {
-        // Fallback if streaming shape unexpected — ask user to use demo replies
         setMessages((m) => [
           ...m,
           {
@@ -117,16 +116,17 @@ export function RenewalChat({
   }
 
   return (
-    <div className="mx-auto grid max-w-5xl gap-6 lg:grid-cols-[360px_1fr]">
-      <div className="mx-auto w-full max-w-[360px]">
-        <div className="overflow-hidden rounded-[2rem] border-[8px] border-tasco-deep bg-tasco-deep shadow-2xl">
-          <div className="bg-zalo-blue px-4 pb-3 pt-4 text-white">
+    <div className="mx-auto grid max-w-5xl gap-6 lg:grid-cols-[380px_1fr]">
+      <div className="mx-auto w-full max-w-[380px]">
+        <div className="relative overflow-hidden rounded-[2.2rem] border-[10px] border-tasco-deep bg-tasco-deep shadow-[0_25px_60px_rgba(0,16,62,0.35)]">
+          <div className="absolute left-1/2 top-2 z-10 h-5 w-28 -translate-x-1/2 rounded-full bg-black/40" />
+          <div className="bg-zalo-blue px-4 pb-3 pt-7 text-white">
             <div className="mb-2 flex items-center justify-between text-[10px] opacity-80">
               <span>9:41</span>
               <span>Zalo · DEMO</span>
             </div>
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-sm font-bold">
+              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white/20 font-display text-sm font-bold">
                 T
               </div>
               <div>
@@ -135,7 +135,7 @@ export function RenewalChat({
               </div>
             </div>
           </div>
-          <div className="flex h-[520px] flex-col bg-[#ebeff5]">
+          <div className="flex h-[540px] flex-col bg-[#ebeff5]">
             <div className="flex-1 space-y-2 overflow-y-auto p-3">
               <div className="rounded-xl border border-dashed border-tasco-sky/40 bg-white/80 p-2 text-[11px] text-muted-foreground">
                 Assumption: Zalo ZNS template + OA chat
@@ -145,7 +145,7 @@ export function RenewalChat({
                   key={m.id}
                   className={
                     m.role === "user"
-                      ? "ml-8 rounded-2xl rounded-br-md bg-zalo-blue px-3 py-2 text-sm text-white"
+                      ? "ml-8 rounded-2xl rounded-br-md bg-zalo-blue px-3 py-2 text-sm text-white shadow-sm"
                       : "mr-8 rounded-2xl rounded-bl-md bg-white px-3 py-2 text-sm text-tasco-deep shadow-sm"
                   }
                 >
@@ -194,7 +194,7 @@ export function RenewalChat({
       <div className="space-y-4">
         <div className="rounded-2xl border bg-card p-5 shadow-sm">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge tone="sky">Customer chat</Badge>
+            <Badge tone="sky">Classic chat</Badge>
             <Badge>{incomplete ? "Needs confirmation" : "Profile OK"}</Badge>
             <button
               type="button"
@@ -204,7 +204,7 @@ export function RenewalChat({
               Lang: {lang.toUpperCase()}
             </button>
           </div>
-          <h2 className="mt-3 text-lg font-semibold text-tasco-deep">
+          <h2 className="mt-3 font-display text-lg font-semibold text-tasco-deep">
             {customerName} · {plate}
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -217,6 +217,11 @@ export function RenewalChat({
             <Link href={`/vetc/${customerId}`}>
               <Button type="button" variant="outline">
                 VETC App entry
+              </Button>
+            </Link>
+            <Link href="/office">
+              <Button type="button" variant="outline">
+                Virtual Office
               </Button>
             </Link>
             {certificateId && (

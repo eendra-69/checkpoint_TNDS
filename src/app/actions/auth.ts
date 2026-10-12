@@ -6,7 +6,6 @@ import { getOrCreateSession, resetSession } from "@/lib/session";
 import { appendAudit } from "@/lib/audit";
 import { saveSession } from "@/lib/session";
 import { PERSONAS } from "@/lib/rbac";
-import { getDemoCustomerId } from "@/lib/data/seed";
 import type { DemoCustomerId, PersonaId } from "@/lib/types";
 import { nanoid } from "nanoid";
 
@@ -38,7 +37,7 @@ export async function signInAs(input: {
   const home =
     input.next ||
     (input.persona === "customer"
-      ? `/chat/${getDemoCustomerId(input.customerKey || "minh")}`
+      ? "/office"
       : PERSONAS[input.persona].homePath);
 
   redirect(home);

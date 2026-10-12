@@ -30,6 +30,7 @@ export default async function OpsPage() {
     <AppShell
       title="Lead scoring"
       subtitle="Transparent rule-based scores with next-best action. Campaigns auto-exclude customers without consent."
+      compact
     >
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-2">
@@ -42,7 +43,7 @@ export default async function OpsPage() {
       </div>
 
       {lastCampaign && (
-        <div className="mb-4 rounded-2xl border border-tasco-sky/30 bg-tasco-pale/60 p-4 text-sm">
+        <div className="mb-4 rounded-2xl border border-tasco-sky/30 bg-gradient-to-r from-tasco-pale to-white p-4 text-sm shadow-sm">
           Last run targeted <strong>{lastCampaign.targeted}</strong>, excluded{" "}
           <strong>{lastCampaign.excluded}</strong>
           {Object.keys(lastCampaign.exclusionReasons).length > 0 && (

@@ -329,6 +329,7 @@ export function createSeedSession(sessionId: string): DemoSession {
     conversations: [],
     handovers: [],
     certificates: [],
+    claims: [],
     audit: [
       {
         id: "audit_seed",

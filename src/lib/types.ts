@@ -164,6 +164,33 @@ export type LlmProviderId =
 
 export type AiFeature = "chat" | "voice" | "assistant";
 
+export type CustomerUiMode = "classic" | "office";
+
+export type ClaimStatus =
+  | "draft"
+  | "submitted"
+  | "under_review"
+  | "need_info"
+  | "resolved";
+
+export type ClaimTimelineEntry = {
+  at: string;
+  status: ClaimStatus;
+  note: string;
+};
+
+export type Claim = {
+  id: string;
+  customerId: string;
+  status: ClaimStatus;
+  photos: string[];
+  note: string;
+  triageNote?: string;
+  createdAt: string;
+  updatedAt: string;
+  timeline: ClaimTimelineEntry[];
+};
+
 export type SessionSettings = {
   defaultProvider: LlmProviderId;
   defaultModel: string;
@@ -175,6 +202,7 @@ export type SessionSettings = {
   elevenLabsApiKey?: string;
   elevenLabsVoiceId?: string;
   permissionOverrides?: Partial<Record<PersonaId, string[]>>;
+  customerUiMode?: CustomerUiMode;
 };
 
 export type DemoSession = {
@@ -189,6 +217,7 @@ export type DemoSession = {
   conversations: Conversation[];
   handovers: Handover[];
   certificates: Certificate[];
+  claims: Claim[];
   audit: AuditEvent[];
   campaigns: CampaignRun[];
   outcomes: { customerId: string; code: OutcomeCode; at: string }[];

@@ -20,6 +20,7 @@ export default async function AgentPage() {
     <AppShell
       title="Telesales console"
       subtitle="Warm AI handovers with summaries. Send a renewal link — customer confirms and pays themselves."
+      compact
     >
       {queue.length === 0 ? (
         <div className="rounded-2xl border border-dashed bg-card p-8 text-center">

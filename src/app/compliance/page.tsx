@@ -18,9 +18,34 @@ export default async function CompliancePage() {
       title="Compliance"
       subtitle="Consent ledger and append-only audit log. Read-only for this persona."
     >
+      {(session.claims?.length ?? 0) > 0 && (
+        <section className="mb-6 rounded-2xl border bg-card shadow-sm">
+          <div className="border-b px-4 py-3 font-display font-semibold text-tasco-deep">
+            Claims ledger (demo)
+          </div>
+          <div className="max-h-64 space-y-2 overflow-auto p-3">
+            {session.claims.map((c) => (
+              <div key={c.id} className="rounded-xl bg-tasco-pale/50 p-3 text-sm">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-mono text-xs font-semibold">{c.id}</span>
+                  <Badge tone="sky">{c.status}</Badge>
+                  <span className="text-xs text-muted-foreground">
+                    {c.customerId}
+                  </span>
+                </div>
+                <div className="mt-1 text-muted-foreground">{c.note}</div>
+                {c.triageNote && (
+                  <div className="mt-1 text-xs text-tasco-navy">{c.triageNote}</div>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="rounded-2xl border bg-card shadow-sm">
-          <div className="border-b px-4 py-3 font-semibold text-tasco-deep">
+          <div className="border-b px-4 py-3 font-display font-semibold text-tasco-deep">
             Consent ledger
           </div>
           <div className="max-h-[480px] overflow-auto">
@@ -48,7 +73,7 @@ export default async function CompliancePage() {
         </section>
 
         <section className="rounded-2xl border bg-card shadow-sm">
-          <div className="border-b px-4 py-3 font-semibold text-tasco-deep">
+          <div className="border-b px-4 py-3 font-display font-semibold text-tasco-deep">
             Audit log
           </div>
           <div className="max-h-[480px] space-y-2 overflow-auto p-3">

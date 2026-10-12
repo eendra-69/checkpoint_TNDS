@@ -26,12 +26,16 @@ export default async function MetricsPage() {
     <AppShell
       title="Impact metrics"
       subtitle="Funnel from this demo session plus stated assumptions for the pitch."
+      compact
     >
       <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {cards.map((c) => (
-          <div key={c.label} className="rounded-2xl border bg-card p-4 shadow-sm">
+          <div
+            key={c.label}
+            className="rounded-2xl border bg-gradient-to-b from-white to-tasco-pale/40 p-4 shadow-sm"
+          >
             <div className="text-xs text-muted-foreground">{c.label}</div>
-            <div className="mt-1 text-2xl font-semibold tabular-nums text-tasco-deep">
+            <div className="mt-1 font-display text-2xl font-semibold tabular-nums text-tasco-deep">
               {c.value}
             </div>
           </div>

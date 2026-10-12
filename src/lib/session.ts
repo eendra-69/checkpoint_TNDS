@@ -23,13 +23,19 @@ function key(sessionId: string) {
   return `tasco:session:${sessionId}`;
 }
 
+function normalizeSession(data: DemoSession): DemoSession {
+  if (!Array.isArray(data.claims)) data.claims = [];
+  return data;
+}
+
 export async function getSession(sessionId: string): Promise<DemoSession | null> {
   const redis = await getRedis();
   if (redis) {
     const data = await redis.get<DemoSession>(key(sessionId));
-    return data ?? null;
+    return data ? normalizeSession(data) : null;
   }
-  return memory.get(sessionId) ?? null;
+  const mem = memory.get(sessionId);
+  return mem ? normalizeSession(mem) : null;
 }
 
 export async function saveSession(session: DemoSession): Promise<void> {
