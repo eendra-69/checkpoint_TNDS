@@ -1,9 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  cacheComponents: true,
-  partialPrefetching: true,
+  // Demo app uses cookies/session on most routes — keep classic dynamic rendering.
   turbopack: {
     rules: {
       "*.css": {

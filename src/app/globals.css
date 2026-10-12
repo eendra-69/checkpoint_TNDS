@@ -1,26 +1,98 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --tasco-navy: #213368;
+  --tasco-deep: #00103e;
+  --tasco-sky: #3da1ca;
+  --tasco-pale: #eaf3f8;
+  --vetc-green: #25a55e;
+  --zalo-blue: #0068ff;
+
+  --background: #f5f8fb;
+  --foreground: #00103e;
+  --card: #ffffff;
+  --card-foreground: #00103e;
+  --primary: #213368;
+  --primary-foreground: #ffffff;
+  --secondary: #eaf3f8;
+  --secondary-foreground: #213368;
+  --muted: #e8eef4;
+  --muted-foreground: #5b6b82;
+  --accent: #3da1ca;
+  --accent-foreground: #00103e;
+  --success: #25a55e;
+  --success-foreground: #ffffff;
+  --destructive: #dc3545;
+  --destructive-foreground: #ffffff;
+  --border: #d5deea;
+  --ring: #3da1ca;
+  --radius: 1rem;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --color-tasco-navy: var(--tasco-navy);
+  --color-tasco-deep: var(--tasco-deep);
+  --color-tasco-sky: var(--tasco-sky);
+  --color-tasco-pale: var(--tasco-pale);
+  --color-vetc-green: var(--vetc-green);
+  --color-zalo-blue: var(--zalo-blue);
+  --font-sans: var(--font-be-vietnam);
+  --radius-xl: var(--radius);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  border-color: var(--border);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-be-vietnam), system-ui, sans-serif;
+}
+
+.demo-watermark {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 1rem;
+}
+
+.demo-watermark span {
+  border: 1px dashed color-mix(in srgb, var(--tasco-navy) 35%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, white 80%, transparent);
+  color: color-mix(in srgb, var(--tasco-navy) 70%, transparent);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 0.35rem 0.75rem;
+  text-transform: uppercase;
+}
+
+.hero-gradient {
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 0%, color-mix(in srgb, var(--tasco-sky) 35%, transparent), transparent),
+    linear-gradient(145deg, var(--tasco-deep) 0%, var(--tasco-navy) 55%, #1a4a7a 100%);
 }
