@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TASCO — TNDS renewal journey · BeyondPilot demo</title>
+    <meta
+      name="description"
+      content="A working prototype of the Vietnamese compulsory motor insurance (TNDS) renewal journey: rule-based scoring, consent, human handover, and a walkable virtual office. Built for BeyondPilot × Tasco, GenAI Fund."
+    />
+    <meta name="theme-color" content="#0b1f12" />
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="site.css" />
+  </head>
+  <body>
+    <!-- ───────────────────────────────── nav ───────────────────────────────── -->
+    <header class="nav">
+      <div class="wrap nav__inner">
+        <a class="nav__mark" href="#top">TASCO</a>
+        <nav class="nav__links">
+          <a href="#pipeline">Pipeline</a>
+          <a href="#personas">Personas</a>
+          <a href="#worlds">Worlds</a>
+          <a href="#path">3-min path</a>
+          <a class="nav__cta" href="demo/">Open the demo</a>
+        </nav>
+      </div>
+    </header>
+
+    <!-- ───────────────────────────────── hero ──────────────────────────────── -->
+    <section class="hero" id="top">
+      <img
+        class="hero__media"
+        src="assets/brand/hero-night-toll.jpg"
+        alt=""
+        fetchpriority="high"
+      />
+      <div class="wrap hero__inner">
+        <p class="eyebrow">TASCO // BeyondPilot — GenAI Fund</p>
+        <h1 class="hero__title">
+          TNDS renewal,<br />minus the <em>queue</em>.
+        </h1>
+        <p class="hero__sub">
+          Compulsory motor insurance renewal, rebuilt as a journey a driver can
+          actually finish — scored, consented and completed in a chat, at the VETC
+          counter, or on foot inside a walkable virtual office.
+        </p>
+        <div class="hero__actions">
+          <a class="jrpg" href="demo/">
+            <span class="jrpg__arrow">▶</span> Open the live demo
+          </a>
+          <a class="btn btn--ghost" href="#path">Read the 3-minute path</a>
+        </div>
+        <p class="hero__note">
+          No sign-up · passwordless persona login · synthetic data throughout
+        </p>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────── pipeline ────────────────────────────── -->
+    <section class="section section--dark" id="pipeline">
+      <div class="wrap">
+        <p class="eyebrow">The renewal pipeline</p>
+        <h2>Every renewal follows the same spine.</h2>
+        <p class="lede">
+          Not a storyboard. These are the real case states the app persists,
+          transitions and counts — <code>src/lib/workflow/renewal.ts</code> defines
+          the moves, <code>/admin/workflow</code> draws them live, and the funnel
+          reads them back.
+        </p>
+
+        <div class="rail">
+          <div class="stage">
+            <p class="stage__name">scored</p>
+            <p class="stage__body">Risk tier and renewal window open automatically.</p>
+          </div>
+          <div class="stage">
+            <p class="stage__name">reminded</p>
+            <p class="stage__body">The campaign skips anyone without consent, and logs why.</p>
+          </div>
+          <div class="stage">
+            <p class="stage__name">engaged</p>
+            <p class="stage__body">The driver starts — on whichever channel they chose.</p>
+          </div>
+          <div class="stage">
+            <p class="stage__name">confirmed</p>
+            <p class="stage__body">Vehicle plate and make confirmed by the customer, never guessed.</p>
+          </div>
+          <div class="stage">
+            <p class="stage__name">paid</p>
+            <p class="stage__body">Regulated premium, priced from the tariff. Never discounted.</p>
+          </div>
+          <div class="stage">
+            <p class="stage__name">issued</p>
+            <p class="stage__body">Certificate written, QR verifiable at its own public URL.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────── personas ────────────────────────────── -->
+    <section class="section" id="personas">
+      <div class="wrap">
+        <p class="eyebrow">Six roles, six screens</p>
+        <h2>Nobody sees the same product.</h2>
+        <p class="lede">
+          Sign in passwordless as any persona. Routes, data and PII masking all
+          follow from the role, so the telesales console genuinely cannot show
+          what compliance is allowed to read.
+        </p>
+
+        <div class="personas">
+          <article class="persona" style="--accent: #00a758">
+            <p class="persona__role">Customer</p>
+            <span class="persona__where">/office</span>
+            <p class="persona__body">
+              Anh Minh — the happy path. High score, VETC-active, complete profile,
+              about 21 days to expiry.
+            </p>
+          </article>
+
+          <article class="persona" style="--accent: #00a758">
+            <p class="persona__role">Customer (voice)</p>
+            <span class="persona__where">/call/…</span>
+            <p class="persona__body">
+              Chị Lan — ignores chat entirely, calls instead, and asks for a human.
+              The handover path exists because of her.
+            </p>
+          </article>
+
+          <article class="persona" style="--accent: #0068ff">
+            <p class="persona__role">Telesales</p>
+            <span class="persona__where">/agent</span>
+            <p class="persona__body">
+              Handover queue, reveal phone number with a recorded reason, send the
+              renewal link. Cannot issue a certificate — the customer finishes it.
+            </p>
+          </article>
+
+          <article class="persona" style="--accent: #a3e635">
+            <p class="persona__role">Campaign manager</p>
+            <span class="persona__where">/ops</span>
+            <p class="persona__body">
+              Scores the base, runs the consent-gated campaign, reads the funnel
+              and watches exclusions accumulate.
+            </p>
+          </article>
+
+          <article class="persona" style="--accent: #7c3aed">
+            <p class="persona__role">Compliance</p>
+            <span class="persona__where">/compliance</span>
+            <p class="persona__body">
+              Consent ledger plus an append-only audit trail. Read-only by design —
+              nothing here can be edited, only read.
+            </p>
+          </article>
+
+          <article class="persona" style="--accent: #ec4899">
+            <p class="persona__role">Admin</p>
+            <span class="persona__where">/admin</span>
+            <p class="persona__body">
+              LLM providers, RBAC overrides, and the workflow map — the view built
+              for the people evaluating this.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───────────────────────────────── worlds ────────────────────────────── -->
+    <section class="section section--mist" id="worlds">
+      <div class="wrap">
+        <p class="eyebrow">Three walkable rooms</p>
+        <h2>The demo is a place, not a mockup.</h2>
+        <p class="lede">
+          Real-time renders, real presence. Open a second browser tab as another
+          persona and you will see them standing in the room with you.
+        </p>
+
+        <div class="worlds">
+          <a class="world" href="demo/office">
+            <img
+              class="world__shot"
+              src="assets/worlds/office.jpg"
+              alt="The virtual office: reception desk, navy carpet and an NPC behind the counter"
+              loading="lazy"
+            />
+            <div class="world__body">
+              <h3 class="world__name">Virtual Office</h3>
+              <p class="world__desc">
+                HD-2D floor with reception, customer service, claims, the admin
+                board and a VETC kiosk.
+              </p>
+              <span class="world__go">walk in →</span>
+            </div>
+          </a>
+
+          <a class="world" href="demo/workshop">
+            <img
+              class="world__shot"
+              src="assets/worlds/workshop.jpg"
+              alt="The virtual workshop: service bays, engine hoist and inspection pad"
+              loading="lazy"
+            />
+            <div class="world__body">
+              <h3 class="world__name">Workshop</h3>
+              <p class="world__desc">
+                Two service bays on lifts, an inspection pad and a claims desk for
+                the physical side of a claim.
+              </p>
+              <span class="world__go">walk in →</span>
+            </div>
+          </a>
+
+          <a class="world" href="demo/lounge">
+            <img
+              class="world__shot"
+              src="assets/worlds/lounge.jpg"
+              alt="The virtual lounge: sofa, low table and a chat host"
+              loading="lazy"
+            />
+            <div class="world__body">
+              <h3 class="world__name">Lounge</h3>
+              <p class="world__desc">
+                The Zalo-style room. Lounge chat is moderated, and every other
+                visitor in the scene is rendered live.
+              </p>
+              <span class="world__go">walk in →</span>
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ──────────────────────────────── the path ───────────────────────────── -->
+    <section class="section" id="path">
+      <div class="wrap">
+        <p class="eyebrow">For whoever is judging this</p>
+        <h2>Three minutes, in this order.</h2>
+        <p class="lede">
+          This is the sequence that tells the whole story. Every step works with
+          no API keys configured.
+        </p>
+
+        <div class="steps">
+          <div class="step">
+            <p class="step__n">01</p>
+            <div>
+              <p class="step__who">Campaign manager → /ops</p>
+              <p class="step__what">
+                Run the renewal campaign. Watch non-consenting customers drop out
+                and the exclusion count tick up.
+              </p>
+            </div>
+          </div>
+
+          <div class="step">
+            <p class="step__n">02</p>
+            <div>
+              <p class="step__who">Anh Minh → Virtual Office</p>
+              <p class="step__what">
+                Walk to the customer-service desk, confirm the vehicle, pay, then
+                open the issued certificate and its QR page.
+              </p>
+            </div>
+          </div>
+
+          <div class="step">
+            <p class="step__n">03</p>
+            <div>
+              <p class="step__who">Chị Lan → voice</p>
+              <p class="step__what">
+                She ignores chat and calls. Say “nhân viên” and the app hands the
+                conversation to a human instead of looping.
+              </p>
+            </div>
+          </div>
+
+          <div class="step">
+            <p class="step__n">04</p>
+            <div>
+              <p class="step__who">Telesales → /agent</p>
+              <p class="step__what">
+                Open the handover, reveal the phone number with a reason attached,
+                and send the renewal link.
+              </p>
+            </div>
+          </div>
+
+          <div class="step">
+            <p class="step__n">05</p>
+            <div>
+              <p class="step__who">Admin → /admin/workflow</p>
+              <p class="step__what">
+                The workflow map, drawn from the same transition table the
+                product runs on.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero__actions" style="margin-top: 40px">
+          <a class="btn btn--solid" href="demo/">Open the demo</a>
+          <a class="btn btn--ghost" href="#real">What is real?</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───────────────────────────── real vs simulated ────────────────────── -->
+    <section class="section section--dark" id="real">
+      <div class="wrap">
+        <p class="eyebrow">Read this before you judge</p>
+        <h2>What actually works, and what is theatre.</h2>
+        <p class="lede">
+          A prototype that oversells itself is worth less than one that is honest
+          about its seams. Here is exactly where the line sits.
+        </p>
+
+        <div class="split">
+          <div class="panel panel--real">
+            <p class="panel__title">Genuinely implemented</p>
+            <p class="panel__sub">real logic, real state</p>
+            <ul>
+              <li>Rule-based lead scoring and the regulated premium tariff</li>
+              <li>Consent-gated campaigns with exclusion accounting</li>
+              <li>Append-only audit ledger; read-only to compliance</li>
+              <li>Per-route RBAC and PII masking until reveal-with-reason</li>
+              <li>Renewal workflow transitions shared by app and visualiser</li>
+              <li>Certificate issuance and public QR verification</li>
+              <li>Vietnamese / English toggle across every surface</li>
+              <li>Multiplayer presence across all three rooms</li>
+            </ul>
+          </div>
+
+          <div class="panel panel--fake">
+            <p class="panel__title">Deliberately simulated</p>
+            <p class="panel__sub">labelled in the UI</p>
+            <ul>
+              <li>Payment capture — no gateway is connected</li>
+              <li>Issuance — no insurer API, certificates are synthetic</li>
+              <li>Claims — photo upload and stub triage only</li>
+              <li>The AI agent — deterministic replies unless you add API keys</li>
+              <li>ZNS templates and VETC records — hand-written fixtures</li>
+              <li>All customers, policies and premiums — invented data</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───────────────────────────────── stack ─────────────────────────────── -->
+    <section class="section section--mist">
+      <div class="wrap">
+        <p class="eyebrow">Under the hood</p>
+        <h2>Built to be extended, not admired.</h2>
+        <p class="lede">
+          The whole app is a single Next.js project under <code>demo/</code>. Add
+          a provider key and the agent switches from scripted replies to a live
+          model with no other change.
+        </p>
+        <div class="stack">
+          <span class="chip">Next.js 16 App Router</span>
+          <span class="chip">React 19</span>
+          <span class="chip">Tailwind CSS 4</span>
+          <span class="chip">AI SDK</span>
+          <span class="chip">React Three Fiber</span>
+          <span class="chip">Three.js HD-2D</span>
+          <span class="chip">React Flow</span>
+          <span class="chip">Upstash Redis (optional)</span>
+          <span class="chip">Zod</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ──────────────────────────────── footer ─────────────────────────────── -->
+    <footer class="footer">
+      <div class="wrap footer__grid">
+        <div>
+          <p style="margin: 0 0 8px">
+            <strong style="color: #eaf3e4">TASCO — TNDS Renewal Journey</strong>
+            <br />
+            BeyondPilot × Tasco · GenAI Fund prototype
+          </p>
+          <p style="margin: 0">
+            <span class="watermark">DEMO — SYNTHETIC DATA</span>
+          </p>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <a href="demo/">Open the demo →</a>
+          <a href="docs/PRODUCT.md">Product notes</a>
+          <a href="docs/ARCHITECTURE.md">Architecture</a>
+          <a href="docs/README.md">All documentation</a>
+        </div>
+      </div>
+    </footer>
+
+    </body>
+</html>

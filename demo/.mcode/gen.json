@@ -1,0 +1,22 @@
+{
+  "requests": [
+    {
+      "aspect_ratio": "16:9",
+      "resolution": "2K",
+      "output_file": "workshop-props-sheet.png",
+      "prompt": "A clean game-asset sprite sheet of exactly EIGHT garage workshop props arranged in a strict 4-column by 2-row grid, eight equal cells, evenly spaced, each prop centered in its own cell with an even margin, nothing touching the cell edges.\n\nTop row left to right: 1) a steel two-post vehicle car lift platform, 2) a red mechanic tool cart with drawers and a few tools laid on top, 3) a neat stack of three black car tyres, 4) a blue industrial oil drum barrel.\nBottom row left to right: 5) a wooden workbench with a vice and scattered hand tools, 6) an orange engine hoist crane with a hanging chain, 7) a grey metal parts shelving rack stacked with boxes and car parts, 8) a tall red steel tool cabinet with drawers.\n\nSTYLE: soft-shaded 3D render, matte clay-like materials, gentle ambient occlusion, slightly stylized friendly shapes, subtle three-quarter top-down view so you can see a little of the top surfaces. Consistent soft studio lighting from the upper left. Muted but clean colours with a hint of lime green and steel grey.\n\nBACKGROUND: completely flat pure magenta #FF00FF everywhere, no gradient, no vignette, no floor, no cast shadow beneath the props.\n\nNo text, no labels, no numbers, no borders, no grid lines, no watermarks, no scenery."
+    },
+    {
+      "aspect_ratio": "16:9",
+      "resolution": "2K",
+      "output_file": "lounge-props-sheet.png",
+      "prompt": "A clean game-asset sprite sheet of exactly EIGHT cosy office-lounge props arranged in a strict 4-column by 2-row grid, eight equal cells, evenly spaced, each prop centered in its own cell with an even margin, nothing touching the cell edges.\n\nTop row left to right: 1) a beige three-seat sofa with two cushions, 2) a navy blue wingback armchair, 3) a low round wooden coffee table with a white cup and a magazine on it, 4) a wooden bar counter with a few bottles and two glasses on top.\nBottom row left to right: 5) a tall green potted palm plant in a terracotta pot, 6) a brass floor lamp with a warm cream lampshade, 7) a rolled patterned area rug in green and cream stripes, 8) a wooden bookshelf filled with colourful books and a small plant.\n\nSTYLE: soft-shaded 3D render, matte clay-like materials, gentle ambient occlusion, slightly stylized friendly rounded shapes, subtle three-quarter top-down view so you can see a little of the top surfaces. Consistent soft studio lighting from the upper left. Warm cosy palette: beige, navy, warm wood, and lime-green accents.\n\nBACKGROUND: completely flat pure magenta #FF00FF everywhere, no gradient, no vignette, no floor, no cast shadow beneath the props.\n\nNo text, no labels, no numbers, no borders, no grid lines, no watermarks, no scenery."
+    },
+    {
+      "aspect_ratio": "1:1",
+      "resolution": "2K",
+      "output_file": "npc-mechanic-sheet.png",
+      "prompt": "A character walk-cycle sprite sheet of exactly TWELVE frames of the SAME character, arranged in a strict 3-column by 4-row grid, twelve equal cells, evenly spaced, each full-body figure centered in its own cell with an even margin.\n\nThe character is a friendly adult male car mechanic: short dark hair under a lime-green baseball cap, light-medium skin, navy blue overalls over a pale grey t-shirt, brown work boots, holding a silver spanner in his right hand. Chibi proportions with a slightly large head, same style as a polished 3D animated film character.\n\nROW LAYOUT - each row is the same walk cycle seen from a different angle: row 1 = facing the viewer (front), row 2 = facing left in profile, row 3 = facing right in profile, row 4 = facing away (back view).\nCOLUMN LAYOUT - within each row: column 1 = neutral standing pose, column 2 = mid-stride walking pose with legs apart, column 3 = opposite mid-stride walking pose. The figure must look identical in every cell, only the pose and viewing angle change.\n\nSTYLE: soft-shaded 3D render, gentle ambient occlusion, clean rounded shapes, consistent soft studio lighting from the upper left.\n\nBACKGROUND: completely flat pure magenta #FF00FF everywhere, no gradient, no vignette, no floor, no cast shadow beneath the figure.\n\nNo text, no labels, no numbers, no borders, no grid lines, no watermarks."
+    }
+  ]
+}

@@ -1,0 +1,218 @@
+@import "tailwindcss";
+
+/*
+ * Palette: lime-forward, aligned to VETC's green identity.
+ *
+ * Contrast notes (kept deliberately):
+ *  - `tasco-lime` (#4d7c0f) is AA-safe as *text* on white (~5:1). The vivid
+ *    lime (#a3e635) fails contrast on light backgrounds, so it lives in
+ *    `tasco-lime-bright` and is only used for fills/accents that carry dark
+ *    text (~11:1).
+ *  - `zalo-blue` and `vetc-green` are third-party brand colors. They are NOT
+ *    lime-ified on purpose — Zalo stays blue, VETC stays its own green.
+ */
+:root {
+  --tasco-forest: #16351f;
+  --tasco-ink: #0b1f12;
+  --tasco-lime: #4d7c0f;
+  --tasco-lime-bright: #a3e635;
+  --tasco-leaf: #2f6b1f;
+  --tasco-mist: #f1f7e6;
+  --tasco-floor: #e8f0dd;
+  --vetc-green: #00a758;
+  --zalo-blue: #0068ff;
+
+  --background: #f7faf3;
+  --foreground: #0b1f12;
+  --card: #ffffff;
+  --card-foreground: #0b1f12;
+  --primary: #2f6b1f;
+  --primary-foreground: #ffffff;
+  --secondary: #f1f7e6;
+  --secondary-foreground: #16351f;
+  --muted: #eaf2e0;
+  --muted-foreground: #4a5d43;
+  --accent: #a3e635;
+  --accent-foreground: #0b1f12;
+  --success: #00a758;
+  --success-foreground: #ffffff;
+  --destructive: #dc3545;
+  --destructive-foreground: #ffffff;
+  --border: #d8e6c9;
+  --ring: #2f6b1f;
+  --radius: 1rem;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --color-tasco-forest: var(--tasco-forest);
+  --color-tasco-ink: var(--tasco-ink);
+  --color-tasco-lime: var(--tasco-lime);
+  --color-tasco-lime-bright: var(--tasco-lime-bright);
+  --color-tasco-leaf: var(--tasco-leaf);
+  --color-tasco-mist: var(--tasco-mist);
+  --color-tasco-floor: var(--tasco-floor);
+  --color-vetc-green: var(--vetc-green);
+  --color-zalo-blue: var(--zalo-blue);
+  --font-sans: var(--font-be-vietnam);
+  --font-display: var(--font-outfit), var(--font-be-vietnam), system-ui, sans-serif;
+  --radius-xl: var(--radius);
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+* {
+  border-color: var(--border);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-be-vietnam), system-ui, sans-serif;
+}
+
+.demo-watermark {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 1rem;
+}
+
+.demo-watermark span {
+  border: 1px dashed color-mix(in srgb, var(--tasco-lime) 45%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, white 80%, transparent);
+  color: color-mix(in srgb, var(--tasco-ink) 70%, transparent);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 0.35rem 0.75rem;
+  text-transform: uppercase;
+}
+
+/* Dark lime-lit surface used by the app chrome, sidebar and hero panels. */
+.hero-gradient {
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 0%, color-mix(in srgb, var(--tasco-lime-bright) 28%, transparent), transparent),
+    linear-gradient(145deg, var(--tasco-ink) 0%, var(--tasco-forest) 55%, #245c2a 100%);
+}
+
+.sidebar-surface {
+  background:
+    radial-gradient(ellipse 120% 50% at 0% 0%, color-mix(in srgb, var(--tasco-lime-bright) 16%, transparent), transparent),
+    linear-gradient(180deg, var(--tasco-forest) 0%, var(--tasco-ink) 100%);
+}
+
+/* Lime rail marking the active nav item. */
+.nav-rail {
+  background: linear-gradient(180deg, var(--tasco-lime-bright), var(--tasco-lime));
+}
+
+.dialogue-frame {
+  border: 3px solid var(--tasco-forest);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, white 92%, var(--tasco-mist)), white);
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--tasco-lime-bright) 45%, transparent),
+    0 18px 40px color-mix(in srgb, var(--tasco-ink) 25%, transparent);
+}
+
+.office-prompt {
+  animation: office-prompt-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes office-prompt-pulse {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.92;
+  }
+  50% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
+}
+
+.font-pixel {
+  font-family: var(--font-vt323), ui-monospace, monospace;
+  letter-spacing: 0.04em;
+}
+
+.jrpg-window {
+  border: 3px solid #ffffff;
+  border-radius: 12px;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--tasco-forest) 92%, black),
+      var(--tasco-ink)
+    );
+  box-shadow:
+    0 0 0 3px var(--tasco-ink),
+    0 0 0 5px color-mix(in srgb, var(--tasco-lime-bright) 65%, white),
+    0 16px 40px color-mix(in srgb, black 45%, transparent);
+  color: #fff;
+}
+
+/* Floating nameplate above another player's avatar. */
+.presence-tag {
+  background: color-mix(in srgb, var(--tasco-ink) 82%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tasco-lime-bright) 70%, transparent);
+  color: #fff;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  padding: 3px 8px;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px color-mix(in srgb, black 35%, transparent);
+}
+
+.presence-tag[data-self="true"] {
+  border-color: color-mix(in srgb, var(--tasco-lime-bright) 100%, transparent);
+  background: color-mix(in srgb, var(--tasco-leaf) 88%, transparent);
+}
+
+/* Chat bubble in the virtual lounge. */
+.lounge-bubble {
+  background: color-mix(in srgb, white 92%, var(--tasco-mist));
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 2px 10px color-mix(in srgb, var(--tasco-ink) 10%, transparent);
+}
+
+.lounge-bubble[data-moderated="true"] {
+  background: color-mix(in srgb, var(--destructive) 8%, white);
+  border-color: color-mix(in srgb, var(--destructive) 35%, transparent);
+}
+
+/* Persona accent colours, used for presence avatars and lounge name tags. */
+.persona-customer { --persona: #00a758; }
+.persona-telesales { --persona: #0068ff; }
+.persona-campaign_manager { --persona: #a3e635; }
+.persona-compliance { --persona: #7c3aed; }
+.persona-executive { --persona: #f59e0b; }
+.persona-admin { --persona: #ec4899; }

@@ -9,26 +9,63 @@
 
 Git working tree is **`app/`**, not the parent `2026 tasco` folder.
 
-## Environment (Vercel + `.env.local`)
+## Two deployables
 
-Copy from `.env.example`:
+The repository root is no longer the Next.js app. It now holds a static
+presentation site plus the app under `demo/`.
+
+| Target | What to publish | How |
+|---|---|---|
+| Presentation site | repo root (`index.html`, `site.css`, `assets/`, `docs/`) | Any static host — GitHub Pages, Vercel static, Netlify. No build step. |
+| Demo app | `demo/` | Vercel, with the project **root directory set to `demo`** |
+
+Because the demo's Vercel root moved, set **Settings → Build & Development →
+Root Directory** to `demo` on the existing project, or every build will fail
+looking for `package.json` one level too high.
+
+If both are served from the same origin, the presentation site's `demo/` links
+resolve directly. If they are on separate hosts, point the links at the demo's
+absolute URL instead — they are all `href="demo/"` in `index.html`.
+
+## Environment (Vercel + `demo/.env.local`)
+
+Copy from `demo/.env.example`:
 
 | Variable | Required | Notes |
 |----------|----------|--------|
-| `AUTH_SECRET` | yes in prod | JWT signing |
-| `SETTINGS_SECRET` | optional | Fallback if `AUTH_SECRET` missing |
-| `UPSTASH_REDIS_REST_URL` / `TOKEN` | recommended in prod | Without Redis, session is in-memory per instance |
+| `AUTH_SECRET` | **yes in prod** | JWT signing. Since v0.2.0 the signer **throws at boot** in production if this and `SETTINGS_SECRET` are both missing — a misconfigured deploy fails loudly instead of silently signing with a committed default. |
+| `SETTINGS_SECRET` | **yes in prod** | Encrypts provider API keys stored in the session blob (AES-256-GCM). Since v0.2.0 saving a provider key throws rather than writing plaintext to Redis. Rotating it makes existing stored keys undecryptable — they fall back to the env var. |
+| `UPSTASH_REDIS_REST_URL` / `TOKEN` | **strongly recommended in prod** | Without Redis there are **four** degraded stores, not one: the session is in-memory per instance, presence and the lounge feed are not shared across instances, and the audit ledger is not append-only or tamper-evident. `/admin` shows a badge for each. |
 | `AI_GATEWAY_API_KEY` or provider keys | optional | Demo replies work without them |
 | `AI_MODEL` | optional | Default `google/gemini-2.5-flash` |
 | `ELEVENLABS_API_KEY` / `VOICE_ID` | optional | Else Web Speech |
-| `NEXT_PUBLIC_APP_URL` | cert QR | Production should be the public origin |
+| `NEXT_PUBLIC_APP_URL` | cert QR | Production should be the public origin. **If unset, the certificate QR code encodes `http://localhost:3000`** and scanning it goes nowhere. |
 
-Do not commit `.env.local`.
+Do not commit `demo/.env.local`.
+
+## Rate limits
+
+`/api/chat` and `/api/workshop` are limited to 20 requests/minute per session;
+`/api/presence` to 120/min and `/api/lounge` to 30/min. With Redis these are
+enforced globally; without it they are per-instance and best-effort.
+
+## Known limitation: concurrent session writes
+
+`updateSession` serialises read-modify-write **within one process**
+(`demo/src/lib/session-lock.ts`). On Vercel each serverless instance has its own
+module registry, so two requests for the same session landing on *different*
+instances are not serialised and the second write can discard the first.
+
+That needs a distributed lock (`SET NX` with a token, released on completion).
+It was left out deliberately: it adds a Redis round trip to every session write
+and introduces its own lock-expiry failure modes, which is a poor trade for a
+demo that runs on one machine. If you move this to real multi-user traffic,
+implement it first.
 
 ## Local production build
 
 ```bash
-npm run build
+npm run build   # from the repo root; forwards into demo/
 ```
 
 Typecheck runs as part of `next build`.

@@ -8,7 +8,7 @@ This is **not** a licensed insurer platform. Payment, issuance, and claims are s
 
 ## Hard rules
 
-1. **No discounts.** Premiums come from `src/lib/pricing.ts` (illustrative Decree 67/2023-style schedule). UI and agent copy must never offer promotions, cashback, or countdown pressure.
+1. **No discounts.** Premiums come from `demo/src/lib/pricing.ts` (illustrative Decree 67/2023-style schedule). UI and agent copy must never offer promotions, cashback, or countdown pressure.
 2. **Consent gates campaigns.** Running a campaign excludes customers without messaging/call/data-use consent and records exclusion counts.
 3. **Customers confirm before issue.** Incomplete vehicles (Anh Tuấn) must be confirmed before a certificate can be issued.
 4. **Telesales does not issue certificates.** Agents send a renewal link; the customer confirms and pays in their own surface.
@@ -19,7 +19,7 @@ This is **not** a licensed insurer platform. Payment, issuance, and claims are s
 
 ## Personas
 
-Defined in `src/lib/rbac.ts`. Sign-in is passwordless (`/login`).
+Defined in `demo/src/lib/rbac.ts`. Sign-in is passwordless (`/login`).
 
 | Persona | Home | Role in the pitch |
 |---------|------|-------------------|
@@ -32,7 +32,7 @@ Defined in `src/lib/rbac.ts`. Sign-in is passwordless (`/login`).
 | Executive | `/metrics` | Funnel + stated uplift assumptions |
 | Admin | `/admin` | LLM providers, RBAC overrides, workflow map |
 
-Customers only see their own policy (`customer:own_only`). Staff PII is masked unless telesales/admin reveal with a reason (`src/lib/masking.ts`).
+Customers only see their own policy (`customer:own_only`). Staff PII is masked unless telesales/admin reveal with a reason (`demo/src/lib/masking.ts`).
 
 ## Suggested 3-minute path
 
@@ -44,7 +44,7 @@ Customers only see their own policy (`customer:own_only`). Staff PII is masked u
 
 ## Case states
 
-Canonical list: `CaseState` in `src/lib/types.ts`. Transitions: `src/lib/workflow/renewal.ts` (this is what `/admin/workflow` draws).
+Canonical list: `CaseState` in `demo/src/lib/types.ts`. Transitions: `demo/src/lib/workflow/renewal.ts` (this is what `/admin/workflow` draws).
 
 Happy path: `scored` → `reminded` → `engaged` → `confirmed` → `paid`/`issued`.
 

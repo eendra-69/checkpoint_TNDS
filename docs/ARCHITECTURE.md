@@ -3,29 +3,29 @@
 ## Runtime
 
 - **Framework:** Next.js 16 App Router, React 19, TypeScript.
-- **Styling:** Tailwind 4, Tasco tokens in `src/app/globals.css` (navy / sky / pale). Fonts: Be Vietnam Pro, Outfit, VT323 (office).
+- **Styling:** Tailwind 4, Tasco tokens in `demo/src/app/globals.css` (navy / sky / pale). Fonts: Be Vietnam Pro, Outfit, VT323 (office).
 - **Auth:** JWT cookie `tasco_auth` (`jose`), 7 days. Signed with `AUTH_SECRET`.
 - **Session store:** Upstash Redis if `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` are set; otherwise **in-memory** `Map` (lost on serverless cold start / process restart). Redis TTL 7 days. Key: `tasco:session:{id}`.
-- **RBAC:** `src/lib/rbac.ts`. Edge check in `src/proxy.ts` uses **default** permissions. Page/actions use `requirePermission`, which honors **session** `permissionOverrides` from Admin.
+- **RBAC:** `demo/src/lib/rbac.ts`. Edge check in `demo/src/proxy.ts` uses **default** permissions. Page/actions use `requirePermission`, which honors **session** `permissionOverrides` from Admin.
 - **AI:** Vercel AI SDK. If no provider key (env or Admin settings), `/api/chat` returns JSON `{ demo: true, text }` from `demoRenewalReply`.
-- **Voice:** ElevenLabs if a key exists; else Web Speech API (`src/components/voice/voice-call.tsx`).
+- **Voice:** ElevenLabs if a key exists; else Web Speech API (`demo/src/components/voice/voice-call.tsx`).
 - **Office:** `@react-three/fiber` + drei + postprocessing, pixel sprites not a 3D mesh office.
 
 ## Directory map
 
 ```
 app/                          ← git root
-├── src/app/                  routes, layouts, API, server actions
-├── src/components/           UI (shells, chat, office, workflow, assistant)
-├── src/lib/                  domain: session, rbac, scoring, i18n, agent
-├── public/brand/             photography / logos
-├── public/office/            processed sprites + manifest
-├── scripts/process-office-assets.mjs
+├── demo/src/app/                  routes, layouts, API, server actions
+├── demo/src/components/           UI (shells, chat, office, workflow, assistant)
+├── demo/src/lib/                  domain: session, rbac, scoring, i18n, agent
+├── demo/public/brand/             photography / logos
+├── demo/public/office/            processed sprites + manifest
+├── demo/scripts/process-office-assets.mjs
 ├── docs/                     this documentation
 └── .vercel/                  local Vercel link (do not commit output)
 ```
 
-### Routes (`src/app`)
+### Routes (`demo/src/app`)
 
 | Path | Permission | Notes |
 |------|------------|--------|
@@ -48,7 +48,7 @@ app/                          ← git root
 
 `proxy.ts` public prefixes: `/`, `/login`, `/forbidden`, `/verify`, static files.
 
-### Server actions (`src/app/actions`)
+### Server actions (`demo/src/app/actions`)
 
 | File | Responsibility |
 |------|----------------|
@@ -60,7 +60,7 @@ app/                          ← git root
 | `claims.ts` | Create / advance / resolve demo claims |
 | `admin.ts` | LLM keys, permission toggles |
 
-### Libraries (`src/lib`)
+### Libraries (`demo/src/lib`)
 
 | File | Responsibility |
 |------|----------------|
@@ -120,4 +120,4 @@ Bulk customers are `cust_0001`…. Scoring runs on the full set at seed time.
 
 - `proxy.ts` does **not** load session overrides; Admin-changed RBAC is enforced in `requirePermission` / server actions, not at the edge.
 - Local LLM providers are disabled on Vercel (`localProvidersDisabled`).
-- Never commit `.env.local`. Admin-entered provider keys live **in the demo session**, not in git.
+- Never commit `demo/.env.local`. Admin-entered provider keys live **in the demo session**, not in git.

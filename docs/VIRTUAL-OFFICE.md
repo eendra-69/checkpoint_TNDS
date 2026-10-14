@@ -1,6 +1,6 @@
 # Virtual Office (HD-2D)
 
-Customer default surface. Route: `/office`. Implementation: `src/components/office/`.
+Customer default surface. Route: `/office`. Implementation: `demo/src/components/office/`.
 
 ## Intent
 
@@ -44,17 +44,17 @@ Proximity uses `INTERACTABLES[].radius`. NPC sheets: `/office/npc-cs.png`, `npc-
 
 ## Assets
 
-Processed output in `public/office/`. Raw magenta-keyed grids in `public/office/raw/` (if present).
+Processed output in `demo/public/office/`. Raw magenta-keyed grids in `demo/public/office/raw/` (if present).
 
 ```bash
 npm run office:assets
 ```
 
-`scripts/process-office-assets.mjs` (sharp):
+`demo/scripts/process-office-assets.mjs` (sharp):
 
 - Keys magenta / hot-pink (JPEG bleed tolerant).
 - Slices character grids, nearest-neighbor resize.
-- Writes atlases + `public/office/manifest.json`.
+- Writes atlases + `demo/public/office/manifest.json`.
 
 Do not smooth-scale pixel art. Keep nearest-neighbor sampling in materials (`SpriteCharacter.tsx`).
 

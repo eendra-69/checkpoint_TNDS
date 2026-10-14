@@ -1,13 +1,48 @@
-# TASCO TNDS Renewal Demo
+# TASCO TNDS Renewal Journey
 
 BeyondPilot × Tasco (GenAI Fund) prototype: AI-assisted **TNDS** (compulsory motor liability) renewal.
 
-The demo is a full Next.js app with six RBAC personas, rule-based lead scoring, Zalo-style chat, VETC entry, AI voice, telesales handover, a walkable HD-2D Virtual Office, claims (demo-only), digital certificate verify, VI/EN toggle, and a workflow visualizer.
+This repository has two halves:
 
-**Live:** https://tasco-renewal-demo.vercel.app  
+| Path | What it is | Build |
+|------|-----------|-------|
+| `index.html` + `site.css` | The presentation site — explains the demo and links into it | None. Plain HTML + CSS. |
+| `demo/` | The demo app itself — a complete Next.js 16 project | `npm install && npm run dev` |
+
+**Live demo:** https://tasco-renewal-demo.vercel.app
 **GitHub:** https://github.com/jrrqd/tasco-renewal-demo (private)
 
-This repository root **is** the Next.js app (`package.json` lives here). Parent folders outside this git repo are not part of the deploy.
+Every "Open the demo" link points at `demo/`. Locally the static server
+redirects that path to the running dev server, so the two behave like one origin.
+
+## Quick start
+
+Two terminals, from this directory:
+
+```bash
+npm run setup    # installs the demo's dependencies (first time only)
+npm run dev      # terminal 1 — demo app on http://localhost:3000
+npm run site     # terminal 2 — presentation site on http://localhost:4321
+```
+
+Then open <http://localhost:4321> and click through to the demo.
+
+## Repository layout
+
+```
+.
+├── index.html          presentation site (the front door)
+├── site.css            its styles — tokens mirror demo/src/app/globals.css
+├── assets/             brand art and real screenshots of the 3 rooms
+├── scripts/            zero-dependency static server for the site
+├── docs/               product, architecture and how-to docs
+├── AGENTS.md           notes for agents working in this repo
+└── demo/               the Next.js app
+    ├── src/            app router pages, components, lib
+    ├── public/         brand art, sprite atlases, 3D room assets
+    ├── scripts/        office asset pipeline
+    └── docs → see ../docs
+```
 
 ## Documentation
 
@@ -22,48 +57,40 @@ This repository root **is** the Next.js app (`package.json` lives here). Parent 
 | [docs/DEPLOY.md](./docs/DEPLOY.md) | Both | Vercel, git-author block, env vars |
 | [docs/CONTINUING.md](./docs/CONTINUING.md) | Both | Conventions, known gaps, safe next work |
 
-## Quick start
-
-```bash
-cd app   # if you are in the parent “2026 tasco” folder
-cp .env.example .env.local
-# set AUTH_SECRET to a long random string
-npm install
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) → **Sign in as…**
-
-No AI keys required. Without keys, chat uses deterministic replies in `src/lib/agent/demo-reply.ts`.
-
 ## Demo path (~3 minutes)
 
-1. **Campaign manager** → `/ops` → run renewal campaign  
-2. **Anh Minh (customer)** → Virtual Office or Classic chat → confirm → pay → certificate  
-3. **Chị Lan (customer)** → `/call/...` → ask for a human  
-4. **Telesales** → `/agent` → reveal PII with reason → send renewal link  
-5. **Admin** → `/admin` + `/admin/workflow`  
-6. **Metrics / Compliance** → funnel + consent/audit  
+1. **Campaign manager** → `/ops` → run renewal campaign
+2. **Anh Minh (customer)** → Virtual Office or Classic chat → confirm → pay → certificate
+3. **Chị Lan (customer)** → `/call/...` → ask for a human
+4. **Telesales** → `/agent` → reveal PII with reason → send renewal link
+5. **Admin** → `/admin` + `/admin/workflow`
+6. **Metrics / Compliance** → funnel + consent/audit
 
 Header **VI | EN** switches UI language. Customers also get **Classic | Virtual Office**.
 
 ## Stack
 
-Next.js 16 (App Router) · React 19 · Tailwind 4 · AI SDK · optional Upstash Redis · React Flow · Three.js / R3F (office) · Web Speech or ElevenLabs
+Next.js 16 (App Router) · React 19 · Tailwind 4 · AI SDK · optional Upstash Redis · React Flow · Three.js / R3F (office, workshop, lounge) · Web Speech or ElevenLabs
 
 ## Scripts
 
+Run from the repository root; each one forwards into `demo/`.
+
 | Script | Purpose |
 |--------|---------|
-| `npm run dev` | Local server |
-| `npm run build` | Production build / typecheck |
-| `npm run start` | Serve production build |
-| `npm run lint` | ESLint |
-| `npm run office:assets` | Process sprite sheets in `public/office/raw` |
+| `npm run site` | Serve the presentation site on :4321 (zero deps) |
+| `npm run dev` | Demo dev server on :3000 |
+| `npm run build` | Demo production build / typecheck |
+| `npm run start` | Serve the demo production build |
+| `npm run lint` | ESLint over the demo |
+| `npm run typecheck` | `tsc --noEmit` over the demo |
+| `npm run assets` | Rebuild the 3D room sprite atlases |
+| `npm run setup` | `npm install` inside `demo/` |
 
-## Product constraints (do not break)
+## Deploying
 
-- TNDS premiums are **regulated**. Never add discounts, cashback, or fake urgency.
-- Claims flow is **demo-only**, not a real insurer claims product.
-- All customer data is **synthetic**.
-- Default locale is **Vietnamese**. Default customer surface is **Virtual Office**.
+The presentation site is static — publish the repository root as-is. The demo is
+a normal Next.js project; set the Vercel **root directory to `demo`**. See
+[docs/DEPLOY.md](./docs/DEPLOY.md).
+
+All data in the demo is synthetic and watermarked `DEMO — SYNTHETIC`.

@@ -1,0 +1,10 @@
+{
+  "requests": [
+    {
+      "aspect_ratio": "16:9",
+      "resolution": "2K",
+      "output_file": "workshop-vehicles-sheet.png",
+      "prompt": "A clean game-asset sprite sheet of exactly EIGHT garage workshop objects arranged in a strict 4-column by 2-row grid, eight equal cells, evenly spaced, each object centered in its own cell with an even margin, nothing touching the cell edges.\n\nTop row left to right: 1) a dark forest-green four-door sedan car seen from a subtle three-quarter front angle, 2) a red pickup truck seen from a subtle three-quarter front angle, 3) a blue welding machine on wheels with a cable coil, 4) a bare car engine block mounted on a red wheeled stand.\nBottom row left to right: 5) a grey wheel-alignment machine with a monitor arm, 6) a red air compressor tank on wheels, 7) a low rolling tool trolley with a jack and loose tools, 8) a yellow tripod work lamp on a tall stand with its light glowing.\n\nSTYLE: soft-shaded 3D render, matte clay-like materials, gentle ambient occlusion, slightly stylized friendly rounded shapes, subtle three-quarter top-down view so you can see a little of the top surfaces. Consistent soft studio lighting from the upper left. Muted but clean colours with a hint of lime green and steel grey.\n\nBACKGROUND: completely flat pure magenta #FF00FF everywhere, no gradient, no vignette, no floor, no cast shadow beneath the objects.\n\nNo text, no labels, no numbers, no borders, no grid lines, no watermarks, no scenery."
+    }
+  ]
+}

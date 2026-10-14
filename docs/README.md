@@ -15,4 +15,4 @@ Also:
 
 - [../README.md](../README.md) — human quick start
 - [../AGENTS.md](../AGENTS.md) — agent operating rules
-- [../.env.example](../.env.example) — environment variables
+- [../demo/.env.example](../demo/.env.example) — environment variables
