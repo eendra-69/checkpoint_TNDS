@@ -10,7 +10,8 @@ export default async function WorkflowPage() {
   await requirePermission("workflow:view");
   const auth = await requirePermission("workflow:view");
   const session = await getOrCreateSession(auth.sessionId);
-  const dict = getDictionary(await getLocale());
+  const locale = await getLocale();
+  const dict = getDictionary(locale);
 
   const counts: Record<string, number> = {};
   for (const state of Object.values(session.caseStates) as CaseState[]) {
@@ -22,7 +23,7 @@ export default async function WorkflowPage() {
       title={dict.workflow.title}
       subtitle={dict.workflow.subtitle}
     >
-      <WorkflowCanvas counts={counts} />
+      <WorkflowCanvas counts={counts} labels={dict.workflowCanvas} locale={locale} />
     </AppShell>
   );
 }

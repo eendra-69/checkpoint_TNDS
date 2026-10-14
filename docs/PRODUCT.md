@@ -15,7 +15,7 @@ This is **not** a licensed insurer platform. Payment, issuance, and claims are s
 5. **Claims are demo-only.** Photo upload + stub AI triage + status buttons. Do not present as a live claims API.
 6. **Mark the demo.** Watermark: `DEMO — SYNTHETIC`. Assumptions (ZNS template, payment gateway, insurer API) stay visible where relevant.
 7. **Default language Vietnamese.** English is a toggle, not the default.
-8. **Default customer UI is Virtual Office.** Classic Zalo/VETC is one click away (`tasco-ui-mode` cookie).
+8. **Default customer UI is Virtual Office.** Classic Zalo/VETC is one click away (`tasco-ui-mode` cookie). Exceptions where the story starts elsewhere: Chị Lan signs in to the AI call, Anh Tuấn to Classic chat.
 
 ## Personas
 
@@ -25,7 +25,7 @@ Defined in `src/lib/rbac.ts`. Sign-in is passwordless (`/login`).
 |---------|------|-------------------|
 | Customer — Anh Minh | `/office` | Happy path: high score, VETC-active, complete profile, ~21 days to expiry |
 | Customer — Chị Lan | `/call/cust_lan` | Ignores chat → voice → asks for human |
-| Customer — Anh Tuấn | `/office` | Incomplete vehicle; must confirm plate/make in chat |
+| Customer — Anh Tuấn | `/chat/cust_tuan` | Incomplete vehicle; must confirm plate/make in chat ("Cần xác nhận" badge) |
 | Campaign manager | `/ops` | Scores, campaign, funnel |
 | Telesales | `/agent` | Handover queue, PII reveal-with-reason, renewal link, outcome |
 | Compliance | `/compliance` | Consent ledger + append-only audit (read-only) |
@@ -49,6 +49,8 @@ Canonical list: `CaseState` in `src/lib/types.ts`. Transitions: `src/lib/workflo
 Happy path: `scored` → `reminded` → `engaged` → `confirmed` → `paid`/`issued`.
 
 Handover path: `handed_over` → `link_sent` → customer resumes `engaged`.
+
+Telesales outcomes: "Callback requested" and "Link sent" keep the handover in the queue; "Renewed" (only once the customer has a certificate) and "Not interested" close it. "Not interested" moves the case to `opted_out`, which campaigns exclude. Campaigns also skip customers already `paid` / `issued`.
 
 ## Channels
 

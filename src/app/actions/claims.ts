@@ -6,20 +6,17 @@ import { requirePermission } from "@/lib/auth";
 import { appendAudit } from "@/lib/audit";
 import { getDemoCustomerId } from "@/lib/data/seed";
 import { updateSession } from "@/lib/session";
-import type { Claim, ClaimStatus } from "@/lib/types";
+import type { Claim, ClaimStatus, TriageCode } from "@/lib/types";
+import { getLocale } from "@/lib/i18n/locale";
 
 const MAX_PHOTOS = 3;
 const MAX_PHOTO_CHARS = 180_000;
 
-function triageStub(note: string): string {
+function triageStub(note: string): TriageCode {
   const lower = note.toLowerCase();
-  if (lower.includes("kính") || lower.includes("glass")) {
-    return "AI triage (demo): possible glass/window damage — photo clarity OK.";
-  }
-  if (lower.includes("cản") || lower.includes("bumper")) {
-    return "AI triage (demo): bumper impact suspected — recommend underbody check.";
-  }
-  return "AI triage (demo): exterior damage noted — queued for human adjuster review.";
+  if (lower.includes("kính") || lower.includes("glass")) return "glass";
+  if (lower.includes("cản") || lower.includes("bumper")) return "bumper";
+  return "exterior";
 }
 
 async function resolveCustomerId(authCustomerKey?: string) {
@@ -47,8 +44,10 @@ export async function createClaim(input: {
     customerId,
     status: "submitted",
     photos,
-    note: input.note.trim() || "Khai báo bồi thường TNDS (demo)",
-    triageNote: triageStub(input.note),
+    note:
+      input.note.trim() ||
+      ((await getLocale()) === "en" ? "TNDS claim report (demo)" : "Khai báo bồi thường TNDS (demo)"),
+    triageCode: triageStub(input.note),
     createdAt: now,
     updatedAt: now,
     timeline: [
@@ -76,6 +75,7 @@ export async function createClaim(input: {
       customerId,
       action: "claim.submitted",
       detail: `Claim ${claim.id} submitted with ${photos.length} photo(s)`,
+      params: { claim: claim.id, photos: photos.length },
     });
   });
 
@@ -111,6 +111,7 @@ export async function advanceClaim(
       customerId: claim.customerId,
       action: "claim.status",
       detail: `${claim.id} → ${status}`,
+      params: { claim: claim.id, status },
     });
   });
 

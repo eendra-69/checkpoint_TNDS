@@ -9,6 +9,7 @@ export type OnboardingStep = {
   hint?: string;
 };
 
+// Persona intros, shown once per persona on first visit. Page-specific tours live in page-tours.ts.
 const guest = {
   vi: [
     {
@@ -16,17 +17,6 @@ const guest = {
       title: "Chào mừng đến Tasco Demo",
       body: "Đây là hành trình gia hạn TNDS cho BeyondPilot × Tasco — lead scoring, chat AI, Virtual Office, và RBAC theo persona.",
       hint: "Không cần mật khẩu",
-    },
-    {
-      id: "personas",
-      title: "Chọn vai trò để bắt đầu",
-      body: "Customer mở Virtual Office. Staff (Ops, Telesales, Compliance…) thấy màn hình và quyền khác nhau.",
-      hint: "Thử Anh Minh trước",
-    },
-    {
-      id: "modes",
-      title: "Hai bề mặt khách hàng",
-      body: "Virtual Office = chơi JRPG HD-2D. Classic = chat Zalo / VETC / voice như sản phẩm thật.",
     },
   ],
   en: [
@@ -36,60 +26,27 @@ const guest = {
       body: "This is the TNDS renewal journey for BeyondPilot × Tasco — lead scoring, AI chat, Virtual Office, and persona RBAC.",
       hint: "No passwords",
     },
-    {
-      id: "personas",
-      title: "Pick a persona to start",
-      body: "Customer opens the Virtual Office. Staff (Ops, Telesales, Compliance…) see different screens and permissions.",
-      hint: "Try Anh Minh first",
-    },
-    {
-      id: "modes",
-      title: "Two customer surfaces",
-      body: "Virtual Office = HD-2D JRPG play. Classic = Zalo / VETC / voice chat shaped like production.",
-    },
   ],
 } as const satisfies Record<OnboardingLocale, OnboardingStep[]>;
 
 const customer = {
   vi: [
     {
-      id: "office-welcome",
-      title: "Bạn đang ở Virtual Office",
-      body: "Văn phòng Tasco kiểu JRPG HD-2D. Đi bộ, nói chuyện với nhân viên, gửi bồi thường, theo dõi hồ sơ.",
-    },
-    {
-      id: "controls",
-      title: "Cách điều khiển",
-      body: "WASD hoặc phím mũi tên để đi. E / Space / Enter (hoặc nút A trên điện thoại) để nói chuyện khi gần NPC.",
-      hint: "Esc đóng bảng thoại",
-    },
-    {
-      id: "stations",
-      title: "Các điểm dừng",
-      body: "Lễ tân (hướng dẫn) · CS (gia hạn) · Bồi thường (upload ảnh) · Hồ sơ (trạng thái) · VETC (sang Classic).",
+      id: "customer-welcome",
+      title: "Bạn là khách hàng demo",
+      body: "Gia hạn TNDS của bạn trong Virtual Office (văn phòng game HD-2D) hoặc Classic (chat Zalo, ứng dụng VETC, cuộc gọi AI).",
     },
     {
       id: "toggle",
       title: "Classic ↔ Virtual Office",
-      body: "Dùng nút trên header để chuyển giữa office game và chat Zalo/VETC bất cứ lúc nào.",
+      body: "Dùng nút trên header để chuyển giữa văn phòng game và chat Zalo/VETC bất cứ lúc nào.",
     },
   ],
   en: [
     {
-      id: "office-welcome",
-      title: "You're in the Virtual Office",
-      body: "A Tasco HD-2D JRPG office. Walk around, talk to staff, file claims, and track your case.",
-    },
-    {
-      id: "controls",
-      title: "How to move",
-      body: "WASD or arrow keys to walk. E / Space / Enter (or the phone A button) to talk when near an NPC.",
-      hint: "Esc closes dialogue",
-    },
-    {
-      id: "stations",
-      title: "Where to go",
-      body: "Reception (tips) · CS (renew) · Claims (upload photos) · Admin board (status) · VETC (Classic app).",
+      id: "customer-welcome",
+      title: "You're a demo customer",
+      body: "Renew your TNDS in the Virtual Office (an HD-2D game office) or in Classic (Zalo chat, VETC app, AI voice call).",
     },
     {
       id: "toggle",
@@ -145,13 +102,26 @@ export function storageKeyFor(
   return "tasco-onboard:guest";
 }
 
-export function stepsFor(
+const tourTip = {
+  vi: {
+    id: "tour-button",
+    title: "Nút Tour",
+    body: "Bấm Tour trên header ở bất kỳ trang nào để xem trang đó dùng để làm gì. Tiếp theo là trang bạn đang mở.",
+  },
+  en: {
+    id: "tour-button",
+    title: "The Tour button",
+    body: "Press Tour in the header on any page to see what that page is for. Next up: the page you are on.",
+  },
+} as const satisfies Record<OnboardingLocale, OnboardingStep>;
+
+/** First-visit intro for a persona kind, ending with a pointer to the Tour button. */
+export function introStepsFor(
   kind: "guest" | "customer" | "staff",
   locale: OnboardingLocale = "vi",
 ): OnboardingStep[] {
-  if (kind === "guest") return [...guest[locale]];
-  if (kind === "customer") return [...customer[locale]];
-  return [...staffBase[locale]];
+  const intro = kind === "guest" ? guest : kind === "customer" ? customer : staffBase;
+  return [...intro[locale], tourTip[locale]];
 }
 
 export const onboardingUi = {

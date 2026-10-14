@@ -31,6 +31,9 @@ export async function signInAs(input: {
     detail: `Signed in as ${PERSONAS[input.persona].label}${
       input.customerKey ? ` (${input.customerKey})` : ""
     }`,
+    params: input.customerKey
+      ? { persona: input.persona, customer: input.customerKey }
+      : { persona: input.persona },
   });
   await saveSession(session);
 

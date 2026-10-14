@@ -13,6 +13,13 @@ export function formatVnd(amount: number): string {
   }).format(amount);
 }
 
+const VN_DATE = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Ho_Chi_Minh" });
+
+/** YYYY-MM-DD in Vietnam time. `iso.slice(0, 10)` is UTC and shows the previous day before 07:00 ICT. */
+export function formatDate(iso: string): string {
+  return VN_DATE.format(new Date(iso));
+}
+
 export function maskPhone(phone: string): string {
   if (phone.length < 6) return "••••••";
   return `${phone.slice(0, 3)}••••${phone.slice(-3)}`;

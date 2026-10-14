@@ -25,21 +25,15 @@ Read this after a context reset. Product rules: [PRODUCT.md](./PRODUCT.md). Layo
 
 These are real; do not “fix” them by deleting the demo path.
 
-1. **LLM streaming UI.** With API keys, `streamText` returns a UI stream; Classic chat / CsPanel primarily parse demo JSON. Wiring `useChat` / stream rendering is unfinished.
-2. **Edge vs session RBAC.** `proxy.ts` uses `DEFAULT_PERMISSIONS` only. Admin overrides apply on the server after the request is allowed through. Either document this in the pitch or load overrides in proxy (needs a store read).
-3. **In-memory sessions on Vercel** without Upstash: funnel/chat state can vanish between lambdas. Prefer Redis for any judged demo.
-4. **Git author vs Vercel.** Prebuilt deploy without `.git` — [DEPLOY.md](./DEPLOY.md).
-5. **Staff page bodies** are still mostly English even when titles are translated.
-6. **AdminPanel** office board is lightly localized compared to CS/Claims.
-7. **Persona labels** on `/login` (`PERSONAS[].label`) are English.
-8. **Voice copy** (`VoiceCall`) is not fully dictionary-driven.
-9. **Assistant** (`/api/assistant`) is keyword English scripts, not the renewal LLM.
-10. **Dictionary type:** keep `vi` and `en` the same **shape**. `DeepStringify` only relaxes string literals.
+1. **Edge vs session RBAC.** `proxy.ts` uses `DEFAULT_PERMISSIONS` only. Admin overrides apply on the server after the request is allowed through. Either document this in the pitch or load overrides in proxy (needs a store read).
+2. **In-memory sessions** without Upstash: funnel/chat state can vanish between lambdas on Vercel. Locally the memory store is one process-wide `Map` (on `globalThis`) and copies sessions on save/load like Redis does. Prefer Redis for any judged demo.
+3. **Git author vs Vercel.** Prebuilt deploy without `.git` — [DEPLOY.md](./DEPLOY.md).
+4. **Free text stays as written.** Runtime data is stored as codes + params and rendered per locale (`src/lib/i18n/generated.ts`, `src/lib/workflow/i18n.ts`). What cannot be translated: customer chat text, LLM-written handover summaries/reasons, and events saved before codes existed (they fall back to their stored English).
+5. **Assistant** (`/api/assistant`) is scripted VI/EN answers by topic/keyword (`src/lib/assistant-topics.ts`), not the renewal LLM.
+6. **Dictionary type:** keep `vi` and `en` the same **shape**. `DeepStringify` only relaxes string literals.
 
 ## Suggested next work (if the human asks)
 
-- Finish streaming chat for LLM mode without breaking demo JSON.
-- Translate remaining staff tables/buttons.
 - Connect Upstash on the production project if not already.
 - Add the commit author email to the Vercel team so Git deploys work.
 - Persist office onboarding in the session if judges need a shared machine.
@@ -47,11 +41,12 @@ These are real; do not “fix” them by deleting the demo path.
 
 ## How to run a change
 
-1. `npm run dev` from `app/`.
+1. `npm run dev` from the repository root.
 2. Sign in as the persona that owns the surface.
 3. Toggle VI and EN.
-4. `npm run build`.
-5. Commit only when asked. Deploy only when asked; follow [DEPLOY.md](./DEPLOY.md).
+4. `npm run lint` (clean — keep it at 0 errors / 0 warnings) and `npm run build`.
+5. `npm run test:e2e` — the role scenarios from [VERIFICATION.md](./VERIFICATION.md). Uses installed Edge (`E2E_CHANNEL=chrome` for Chrome); no browser download. Port via `E2E_PORT` (default 3457, since 3000 can be reserved on Windows).
+6. Commit only when asked. Deploy only when asked; follow [DEPLOY.md](./DEPLOY.md).
 
 ## Demo customers (quick reference)
 

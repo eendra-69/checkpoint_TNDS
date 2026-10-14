@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { Claim } from "@/lib/types";
 import type { Locale } from "@/lib/i18n/locale";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { describeTriage } from "@/lib/i18n/generated";
 
 async function fileToDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -156,11 +158,11 @@ export function ClaimsPanel({
                     <span className="font-mono text-xs font-semibold">
                       {c.id}
                     </span>
-                    <Badge tone="sky">{c.status}</Badge>
+                    <Badge tone="sky">{getDictionary(locale).claimStates[c.status]}</Badge>
                   </div>
                   <p className="mt-1 text-white/70">{c.note}</p>
-                  {c.triageNote && (
-                    <p className="mt-1 text-xs text-tasco-sky">{c.triageNote}</p>
+                  {describeTriage(c, locale) && (
+                    <p className="mt-1 text-xs text-tasco-sky">{describeTriage(c, locale)}</p>
                   )}
                   <div className="mt-2 flex flex-wrap gap-2">
                     {c.status === "under_review" && (
@@ -178,7 +180,7 @@ export function ClaimsPanel({
                           )
                         }
                       >
-                        Need info
+                        {en ? "Need info" : "Cần bổ sung"}
                       </Button>
                     )}
                     {c.status !== "resolved" && (
@@ -190,7 +192,7 @@ export function ClaimsPanel({
                           startTransition(() => resolveClaimDemo(c.id))
                         }
                       >
-                        Resolve (demo)
+                        {en ? "Resolve (demo)" : "Xử lý xong (demo)"}
                       </Button>
                     )}
                   </div>

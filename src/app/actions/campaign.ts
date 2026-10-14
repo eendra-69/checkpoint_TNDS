@@ -13,10 +13,22 @@ export async function runRenewalCampaign() {
 
   const exclusionReasons: Record<string, number> = {};
   const targeted: string[] = [];
+  const newlyReminded: string[] = [];
 
   for (const score of session.scores.slice(0, 40)) {
     const customer = session.customers.find((c) => c.id === score.customerId);
     if (!customer) continue;
+
+    const state = session.caseStates[customer.id];
+    if (state === "opted_out") {
+      exclusionReasons["opted_out"] = (exclusionReasons["opted_out"] || 0) + 1;
+      continue;
+    }
+    // Never remind someone who already renewed this cycle.
+    if (state === "paid" || state === "issued") {
+      exclusionReasons["already_renewed"] = (exclusionReasons["already_renewed"] || 0) + 1;
+      continue;
+    }
 
     if (!customer.consent.messaging && score.nextBestAction.channel === "zalo") {
       exclusionReasons["no_messaging_consent"] =
@@ -35,8 +47,9 @@ export async function runRenewalCampaign() {
     }
 
     targeted.push(customer.id);
-    if (session.caseStates[customer.id] === "scored") {
+    if (state === "scored") {
       session.caseStates[customer.id] = "reminded";
+      newlyReminded.push(customer.id);
     }
   }
 
@@ -50,11 +63,12 @@ export async function runRenewalCampaign() {
   };
 
   session.campaigns.unshift(run);
-  session.funnel.reminded += targeted.length;
+  // Funnel counts people, so a re-run must not count the same customers again.
+  session.funnel.reminded += newlyReminded.length;
 
-  // Demo story: Lan goes to no_response after campaign (ignored reminder)
+  // Demo story: Lan ignores her first reminder (only the run that reminds her, never later).
   const lan = session.customers.find((c) => c.demoKey === "lan");
-  if (lan && targeted.includes(lan.id)) {
+  if (lan && newlyReminded.includes(lan.id)) {
     session.caseStates[lan.id] = "no_response";
   }
 
@@ -62,6 +76,7 @@ export async function runRenewalCampaign() {
     persona: auth.persona,
     action: "campaign.run",
     detail: `Targeted ${run.targeted}, excluded ${run.excluded}`,
+    params: { targeted: run.targeted, excluded: run.excluded },
   });
 
   await saveSession(session);

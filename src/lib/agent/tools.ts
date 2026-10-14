@@ -3,17 +3,18 @@ import { z } from "zod";
 import { nanoid } from "nanoid";
 import { COVERAGE_EXPLAIN, getRegulatedPremium } from "../pricing";
 import { appendAudit } from "../audit";
-import { canTransition } from "../workflow/renewal";
-import type { DemoSession, PersonaId } from "../types";
+import { canTransition, currentCertificate } from "../workflow/renewal";
+import type { Channel, DemoSession, PersonaId } from "../types";
 import { formatVnd } from "../utils";
 
 export function createRenewalTools(input: {
   session: DemoSession;
   customerId: string;
   persona: PersonaId;
+  channel: Channel;
   save: () => Promise<void>;
 }) {
-  const { session, customerId, persona, save } = input;
+  const { session, customerId, persona, channel, save } = input;
 
   return {
     lookupPolicy: tool({
@@ -37,6 +38,7 @@ export function createRenewalTools(input: {
           customerId,
           action: "tool.lookupPolicy",
           detail: `Plate ${vehicle.plate}`,
+          params: { plate: vehicle.plate },
         });
         await save();
         return {
@@ -80,6 +82,7 @@ export function createRenewalTools(input: {
           customerId,
           action: "tool.confirmVehicle",
           detail: `Confirmed ${vehicle.plate}`,
+          params: { plate: vehicle.plate },
         });
         await save();
         return { ok: true, plate: vehicle.plate, incomplete: false };
@@ -123,6 +126,7 @@ export function createRenewalTools(input: {
           customerId,
           action: "tool.createCheckout",
           detail: `Checkout ${checkoutId} for ${formatVnd(premium)}`,
+          params: { checkout: checkoutId, amount: formatVnd(premium) },
         });
         await save();
         return {
@@ -147,6 +151,15 @@ export function createRenewalTools(input: {
         const policy = session.policies.find((p) => p.customerId === customerId)!;
         if (vehicle.incomplete) {
           return { ok: false, error: "Vehicle details incomplete — confirm first" };
+        }
+        const existing = currentCertificate(session, customerId);
+        if (existing) {
+          return {
+            ok: false,
+            error: "Policy already renewed — do not issue again",
+            certificateId: existing.id,
+            verifyPath: `/verify/${existing.id}`,
+          };
         }
         const certId = `CERT-${nanoid(10).toUpperCase()}`;
         const issuedAt = new Date().toISOString();
@@ -176,6 +189,7 @@ export function createRenewalTools(input: {
           customerId,
           action: "tool.issueCertificate",
           detail: `Issued ${certId} after ${checkoutId}`,
+          params: { cert: certId, checkout: checkoutId },
         });
         await save();
         return {
@@ -199,7 +213,7 @@ export function createRenewalTools(input: {
         session.handovers.unshift({
           id,
           customerId,
-          fromChannel: "zalo",
+          fromChannel: channel,
           summary,
           reason,
           status: "queued",

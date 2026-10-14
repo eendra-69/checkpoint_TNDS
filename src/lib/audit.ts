@@ -6,7 +6,9 @@ export function appendAudit(
   input: {
     persona: PersonaId;
     action: string;
+    /** English fallback; `params` drive the localized text (see `describeAudit`). */
     detail: string;
+    params?: Record<string, string | number>;
     customerId?: string;
     reason?: string;
   },
@@ -17,6 +19,7 @@ export function appendAudit(
     persona: input.persona,
     action: input.action,
     detail: input.detail,
+    params: input.params,
     customerId: input.customerId,
     reason: input.reason,
   };

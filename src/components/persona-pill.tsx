@@ -7,9 +7,11 @@ import { Button } from "@/components/ui/button";
 export function PersonaPill({
   auth,
   labels,
+  personaLabel,
 }: {
   auth: AuthCookie;
   labels?: { reset: string; signOut: string; switch: string };
+  personaLabel?: string;
 }) {
   const persona = PERSONAS[auth.persona];
   return (
@@ -19,7 +21,7 @@ export function PersonaPill({
         className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur hover:bg-white/20"
       >
         <span className="h-2 w-2 rounded-full bg-tasco-sky" />
-        {persona.label}
+        {personaLabel ?? persona.label}
         {auth.customerId ? ` · ${auth.customerId}` : ""}
         <span className="opacity-70">{labels?.switch ?? "Switch"}</span>
       </Link>

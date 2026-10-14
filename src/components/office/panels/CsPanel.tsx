@@ -2,9 +2,11 @@
 
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { ChatText } from "@/components/chat/chat-text";
 import type { Locale } from "@/lib/i18n/locale";
+import { ChatRequestError, sendRenewalChat, type ChatTurn } from "@/lib/agent/chat-client";
 
-type Msg = { id: string; role: "assistant" | "user"; content: string };
+type Msg = ChatTurn;
 
 export function CsPanel({
   customerId,
@@ -41,46 +43,34 @@ export function CsPanel({
     setMessages(next);
     setInput("");
     setBusy(true);
+    const replyId = crypto.randomUUID();
+    const setReply = (content: string) =>
+      setMessages((m) => [
+        ...m.filter((x) => x.id !== replyId),
+        { id: replyId, role: "assistant", content },
+      ]);
     try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          customerId,
-          messages: next.map((m) => ({
-            id: m.id,
-            role: m.role,
-            parts: [{ type: "text", text: m.content }],
-          })),
-        }),
+      const reply = await sendRenewalChat({
+        customerId,
+        channel: "office",
+        turns: next,
+        onText: setReply,
       });
-      const data = await res.json();
-      const reply =
-        data.demo && data.text
-          ? data.text
-          : data.error
-            ? locale === "en"
-              ? `Error: ${data.error}`
-              : `Lỗi: ${data.error}`
-            : locale === "en"
-              ? "Got it. Try: renew / coverage / human."
-              : "Em đã nhận tin. Thử: gia hạn / quyền lợi / nhân viên.";
-      setMessages((m) => [
-        ...m,
-        { id: data.id || crypto.randomUUID(), role: "assistant", content: reply },
-      ]);
-    } catch {
-      setMessages((m) => [
-        ...m,
-        {
-          id: crypto.randomUUID(),
-          role: "assistant",
-          content:
-            locale === "en"
-              ? "Connection lost — please try again."
-              : "Mất kết nối — thử lại giúp em.",
-        },
-      ]);
+      if (!reply.text) {
+        setReply(
+          locale === "en"
+            ? "Got it. Try: renew / coverage / human."
+            : "Em đã nhận tin. Thử: gia hạn / quyền lợi / nhân viên.",
+        );
+      }
+    } catch (err) {
+      setReply(
+        err instanceof ChatRequestError
+          ? `${locale === "en" ? "Error" : "Lỗi"}: ${err.message}`
+          : locale === "en"
+            ? "Connection lost — please try again."
+            : "Mất kết nối — thử lại giúp em.",
+      );
     } finally {
       setBusy(false);
     }
@@ -113,7 +103,9 @@ export function CsPanel({
                 : "mr-8 rounded-xl border border-white/20 bg-black/25 px-3 py-2 text-sm text-white"
             }
           >
-            <div className="whitespace-pre-wrap">{m.content}</div>
+            <div className="whitespace-pre-wrap">
+              <ChatText text={m.content} />
+            </div>
           </div>
         ))}
       </div>

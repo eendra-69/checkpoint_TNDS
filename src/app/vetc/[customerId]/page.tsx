@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { requirePermission } from "@/lib/auth";
 import { getOrCreateSession } from "@/lib/session";
 import { daysUntil, formatVnd } from "@/lib/utils";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getLocale } from "@/lib/i18n/locale";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 
@@ -19,6 +19,13 @@ export default async function VetcPage({
   const session = await getOrCreateSession(auth.sessionId);
   const customer = session.customers.find((c) => c.id === customerId);
   if (!customer) notFound();
+
+  if (auth.persona === "customer" && auth.customerId) {
+    const allowed = session.customers.find((c) => c.demoKey === auth.customerId);
+    if (!allowed || allowed.id !== customerId) {
+      redirect(`/vetc/${allowed?.id || customerId}`);
+    }
+  }
   const policy = session.policies.find((p) => p.customerId === customerId)!;
   const vehicle = session.vehicles.find((v) => v.id === policy.vehicleId)!;
   const days = daysUntil(policy.expiresAt);

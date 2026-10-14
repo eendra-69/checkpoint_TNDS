@@ -5,7 +5,7 @@ BeyondPilot × Tasco (GenAI Fund) prototype: AI-assisted **TNDS** (compulsory mo
 The demo is a full Next.js app with six RBAC personas, rule-based lead scoring, Zalo-style chat, VETC entry, AI voice, telesales handover, a walkable HD-2D Virtual Office, claims (demo-only), digital certificate verify, VI/EN toggle, and a workflow visualizer.
 
 **Live:** https://tasco-renewal-demo.vercel.app  
-**GitHub:** https://github.com/jrrqd/tasco-renewal-demo (private)
+**GitHub:** https://github.com/eendra69/PIC_tasco-renewal-demo (this repo) · upstream https://github.com/jrrqd/tasco-renewal-demo (private)
 
 This repository root **is** the Next.js app (`package.json` lives here). Parent folders outside this git repo are not part of the deploy.
 
@@ -25,7 +25,6 @@ This repository root **is** the Next.js app (`package.json` lives here). Parent 
 ## Quick start
 
 ```bash
-cd app   # if you are in the parent “2026 tasco” folder
 cp .env.example .env.local
 # set AUTH_SECRET to a long random string
 npm install
@@ -60,6 +59,8 @@ Next.js 16 (App Router) · React 19 · Tailwind 4 · AI SDK · optional Upstash 
 | `npm run start` | Serve production build |
 | `npm run lint` | ESLint |
 | `npm run office:assets` | Process sprite sheets in `public/office/raw` |
+| `npm run test:e2e` | Playwright end-to-end tests (`e2e/`) for every role's scenario; reuses a dev server on port 3457 or starts one |
+| `npm run test:e2e:report` | Open the last Playwright HTML report |
 
 ## Product constraints (do not break)
 

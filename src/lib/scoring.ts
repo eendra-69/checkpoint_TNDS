@@ -3,6 +3,7 @@ import type {
   Customer,
   LeadScore,
   Policy,
+  ScoreReason,
   VetcActivity,
   Vehicle,
 } from "./types";
@@ -15,50 +16,51 @@ export function scoreLead(input: {
 }): LeadScore {
   const { customer, policy, vehicle, vetc } = input;
   const days = daysUntil(policy.expiresAt);
-  const reasons: string[] = [];
+  const reasons: ScoreReason[] = [];
   let score = 40;
 
-  if (days <= 7) {
+  // Expired first: `days <= 7` would otherwise swallow negative days.
+  if (days < 0) {
     score += 30;
-    reasons.push(`Expires in ${days} day(s) — urgent window`);
+    reasons.push({ code: "expired", days: Math.abs(days) });
+  } else if (days <= 7) {
+    score += 30;
+    reasons.push({ code: "expires_urgent", days });
   } else if (days <= 21) {
     score += 22;
-    reasons.push(`Expires in ${days} days — ideal reminder window`);
+    reasons.push({ code: "expires_ideal", days });
   } else if (days <= 45) {
     score += 10;
-    reasons.push(`Expires in ${days} days — early nurture`);
-  } else if (days < 0) {
-    score += 5;
-    reasons.push(`Expired ${Math.abs(days)} day(s) ago`);
+    reasons.push({ code: "expires_early", days });
   }
 
   if (policy.previousRenewed) {
     score += 12;
-    reasons.push("Previously renewed with us");
+    reasons.push({ code: "previously_renewed" });
   }
 
   if (vetc && vetc.tollTripsLast90Days >= 20) {
     score += 15;
-    reasons.push(`Active VETC user (${vetc.tollTripsLast90Days} trips / 90d)`);
+    reasons.push({ code: "vetc_active", trips: vetc.tollTripsLast90Days });
   } else if (vetc && vetc.tollTripsLast90Days >= 5) {
     score += 8;
-    reasons.push(`Moderate VETC activity (${vetc.tollTripsLast90Days} trips)`);
+    reasons.push({ code: "vetc_moderate", trips: vetc.tollTripsLast90Days });
   }
 
   if (customer.zaloOptIn && customer.consent.messaging) {
     score += 10;
-    reasons.push("Zalo messaging consent on file");
+    reasons.push({ code: "zalo_consent" });
   } else if (customer.consent.calls) {
     score += 6;
-    reasons.push("Call consent only — voice channel candidate");
+    reasons.push({ code: "call_consent_only" });
   }
 
   if (!vehicle.incomplete && customer.phone && customer.nationalId) {
     score += 8;
-    reasons.push("Complete customer / vehicle profile");
+    reasons.push({ code: "profile_complete" });
   } else {
     score -= 8;
-    reasons.push("Incomplete data — needs confirmation before issuance");
+    reasons.push({ code: "profile_incomplete" });
   }
 
   score = Math.max(0, Math.min(100, score));
@@ -89,11 +91,14 @@ function pickNextBestAction(input: {
   incomplete: boolean;
 }): LeadScore["nextBestAction"] {
   const { customer, days, propensity, incomplete } = input;
-  const hour = days <= 7 ? "09:00–11:00 ICT" : "18:00–20:00 ICT";
+  const urgent = days <= 7;
+  const hour = urgent ? "09:00–11:00 ICT" : "18:00–20:00 ICT";
 
   if (customer.zaloOptIn && customer.consent.messaging) {
     return {
       channel: "zalo",
+      action: incomplete ? "zalo_confirm" : "zalo_reminder",
+      window: urgent ? "morning" : "evening",
       sendAtHint: hour,
       label: incomplete
         ? "Zalo: confirm vehicle details then renew"
@@ -104,6 +109,8 @@ function pickNextBestAction(input: {
   if (customer.consent.calls && propensity !== "low") {
     return {
       channel: "voice",
+      action: "voice_outreach",
+      window: "voice_morning",
       sendAtHint: "09:30–11:30 ICT",
       label: "Consent-based AI voice outreach",
     };
@@ -111,6 +118,8 @@ function pickNextBestAction(input: {
 
   return {
     channel: "vetc",
+    action: "vetc_banner",
+    window: "next_app_open",
     sendAtHint: "next app open",
     label: "VETC App renewal banner",
   };

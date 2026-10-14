@@ -2,12 +2,13 @@
 
 ## Remotes
 
-- GitHub: `https://github.com/jrrqd/tasco-renewal-demo.git` (private), branch `main`.
-- Vercel project: `tasco-renewal-demo` (team `radr`).
+- GitHub (this repo, `origin`): `https://github.com/eendra69/PIC_tasco-renewal-demo`, branch `main`.
+- GitHub (upstream, private): `https://github.com/jrrqd/tasco-renewal-demo.git`.
+- Vercel project: `tasco-renewal-demo` (team `radr`) — deploys from the upstream repo; a fresh clone of this repo has no `.vercel/` link.
 - Production alias: **https://tasco-renewal-demo.vercel.app**
-- Linked config: `app/.vercel/project.json` (`prj_1Ay6P3xopvQcH392jfuPfmZ81Y9G`).
+- Linked config (upstream checkout only): `.vercel/project.json` (`prj_1Ay6P3xopvQcH392jfuPfmZ81Y9G`).
 
-Git working tree is **`app/`**, not the parent `2026 tasco` folder.
+The git working tree is the repository root, which is the Next.js app.
 
 ## Environment (Vercel + `.env.local`)
 
@@ -44,7 +45,7 @@ That happens when the git author email is not a member of the Vercel team (this 
 **Working workaround (do not skip restoring `.git`):**
 
 1. `npx vercel build --prod`
-2. Temporarily move `app/.git` aside.
+2. Temporarily move `.git` aside.
 3. `npx vercel deploy --prebuilt --prod --yes`
 4. Move `.git` back immediately.
 

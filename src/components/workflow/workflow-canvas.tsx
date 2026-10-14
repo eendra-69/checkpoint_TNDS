@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import {
   ReactFlow,
   Background,
@@ -21,8 +21,22 @@ import { Badge } from "@/components/ui/badge";
 import { WORKFLOW_NODES } from "@/lib/workflow/renewal";
 import { PROCESS_STEPS, PROCESS_LANES } from "@/lib/workflow/process";
 import { SCHEMA_ENTITIES } from "@/lib/data/schema";
+import { getDictionary, type Dictionary } from "@/lib/i18n/dictionaries";
+import type { CaseState } from "@/lib/types";
+import type { Locale } from "@/lib/i18n/locale";
+import type { WorkflowTransition } from "@/lib/workflow/renewal";
+import {
+  laneText,
+  processStepText,
+  relationText,
+  schemaEntityDescription,
+  transitionText,
+  workflowNodeText,
+} from "@/lib/workflow/i18n";
 
 type Tab = "process" | "workflow" | "schema";
+
+export type WorkflowCanvasLabels = Dictionary["workflowCanvas"];
 
 function layout(nodes: Node[], edges: Edge[], dir: "TB" | "LR" = "LR") {
   const g = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
@@ -39,13 +53,12 @@ function layout(nodes: Node[], edges: Edge[], dir: "TB" | "LR" = "LR") {
   });
 }
 
-function buildWorkflow(counts: Record<string, number>) {
+function buildWorkflow(counts: Record<string, number>, locale: Locale) {
   const nodes: Node[] = WORKFLOW_NODES.map((n) => ({
     id: n.id,
     position: { x: 0, y: 0 },
     data: {
-      label: n.label,
-      description: n.description,
+      ...workflowNodeText(n, locale),
       count: counts[n.id] || 0,
       kind: "workflow",
       meta: n,
@@ -64,7 +77,7 @@ function buildWorkflow(counts: Record<string, number>) {
       id: `${n.id}-${t.to}`,
       source: n.id,
       target: t.to,
-      label: t.trigger,
+      label: transitionText(n.id, t.to, t.trigger, locale),
       style: { stroke: "#3da1ca" },
       labelStyle: { fontSize: 9, fill: "#5b6b82" },
     })),
@@ -72,16 +85,14 @@ function buildWorkflow(counts: Record<string, number>) {
   return { nodes: layout(nodes, edges), edges };
 }
 
-function buildProcess() {
-  const nodes: Node[] = PROCESS_STEPS.map((s, i) => ({
+function buildProcess(locale: Locale) {
+  const nodes: Node[] = PROCESS_STEPS.map((s) => ({
     id: s.id,
     position: { x: 0, y: 0 },
     data: {
-      label: s.label,
-      description: s.description,
+      ...processStepText(s, locale),
       kind: "process",
-      lane: PROCESS_LANES.find((l) => l.id === s.lane)?.label,
-      assumption: s.assumption,
+      lane: laneText(s.lane, PROCESS_LANES.find((l) => l.id === s.lane)?.label ?? s.lane, locale),
       meta: s,
     },
     style: {
@@ -104,13 +115,13 @@ function buildProcess() {
   return { nodes: layout(nodes, edges), edges };
 }
 
-function buildSchema() {
+function buildSchema(locale: Locale) {
   const nodes: Node[] = SCHEMA_ENTITIES.map((e) => ({
     id: e.id,
     position: { x: 0, y: 0 },
     data: {
       label: e.label,
-      description: e.description,
+      description: schemaEntityDescription(e, locale),
       kind: "schema",
       meta: e,
     },
@@ -128,7 +139,7 @@ function buildSchema() {
       id: `${e.id}-${r.to}-${r.label}`,
       source: e.id,
       target: r.to,
-      label: r.label,
+      label: relationText(r.label, locale),
       style: { stroke: "#213368" },
       labelStyle: { fontSize: 9 },
     })),
@@ -136,55 +147,68 @@ function buildSchema() {
   return { nodes: layout(nodes, edges, "TB"), edges };
 }
 
+const subscribeNever = () => () => {};
+
+function withSavedLayout(nodes: Node[], storageKey: string): Node[] {
+  try {
+    const saved = localStorage.getItem(storageKey);
+    if (!saved) return nodes;
+    const positions = JSON.parse(saved) as Record<string, { x: number; y: number }>;
+    return nodes.map((n) => (positions[n.id] ? { ...n, position: positions[n.id] } : n));
+  } catch {
+    return nodes;
+  }
+}
+
 function CanvasInner({
   tab,
   counts,
+  labels,
+  locale,
 }: {
   tab: Tab;
   counts: Record<string, number>;
+  labels: WorkflowCanvasLabels;
+  locale: Locale;
 }) {
   const built = useMemo(() => {
-    if (tab === "workflow") return buildWorkflow(counts);
-    if (tab === "process") return buildProcess();
-    return buildSchema();
-  }, [tab, counts]);
+    if (tab === "workflow") return buildWorkflow(counts, locale);
+    if (tab === "process") return buildProcess(locale);
+    return buildSchema(locale);
+  }, [tab, counts, locale]);
 
-  const [nodes, setNodes, onNodesChange] = useNodesState(built.nodes);
+  const storageKey = `tasco-wf-layout-${tab}`;
+  // Saved positions live in localStorage, so apply them only after hydration
+  // (server and first client render must match).
+  const isClient = useSyncExternalStore(subscribeNever, () => true, () => false);
+  const initialNodes = useMemo(
+    () => (isClient ? withSavedLayout(built.nodes, storageKey) : built.nodes),
+    [built, isClient, storageKey],
+  );
+
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(built.edges);
   const [selected, setSelected] = useState<Node | null>(null);
   const { fitView } = useReactFlow();
-  const storageKey = `tasco-wf-layout-${tab}`;
 
-  useEffect(() => {
-    setNodes(built.nodes);
+  // New map (tab, counts, locale) or saved layout now readable: start from it.
+  const [shownNodes, setShownNodes] = useState(initialNodes);
+  if (shownNodes !== initialNodes) {
+    setShownNodes(initialNodes);
+    setNodes(initialNodes);
     setEdges(built.edges);
     setSelected(null);
-    const saved = localStorage.getItem(storageKey);
-    if (saved) {
-      try {
-        const positions = JSON.parse(saved) as Record<string, { x: number; y: number }>;
-        setNodes((ns) =>
-          ns.map((n) =>
-            positions[n.id] ? { ...n, position: positions[n.id] } : n,
-          ),
-        );
-      } catch {
-        /* ignore */
-      }
-    }
-    setTimeout(() => fitView({ padding: 0.2 }), 50);
-  }, [built, setNodes, setEdges, fitView, storageKey]);
+  }
+
+  useEffect(() => {
+    const id = window.setTimeout(() => fitView({ padding: 0.2 }), 50);
+    return () => window.clearTimeout(id);
+  }, [initialNodes, fitView]);
 
   const onNodeDragStop = useCallback(() => {
-    setNodes((ns) => {
-      const positions: Record<string, { x: number; y: number }> = {};
-      ns.forEach((n) => {
-        positions[n.id] = n.position;
-      });
-      localStorage.setItem(storageKey, JSON.stringify(positions));
-      return ns;
-    });
-  }, [setNodes, storageKey]);
+    const positions = Object.fromEntries(nodes.map((n) => [n.id, n.position]));
+    localStorage.setItem(storageKey, JSON.stringify(positions));
+  }, [nodes, storageKey]);
 
   const resetLayout = () => {
     localStorage.removeItem(storageKey);
@@ -228,7 +252,8 @@ function CanvasInner({
           edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
-          onNodeClick={(_, node) => setSelected(node)}
+          // The rendered node's label is JSX; keep the state node so Detail gets the plain label.
+          onNodeClick={(_, node) => setSelected(nodes.find((n) => n.id === node.id) ?? node)}
           onNodeDragStop={onNodeDragStop}
           fitView
           nodesDraggable
@@ -238,20 +263,20 @@ function CanvasInner({
           <Controls />
           <Panel position="top-right" className="flex gap-2">
             <Button type="button" size="sm" variant="secondary" onClick={() => fitView({ padding: 0.2 })}>
-              Fit to view (F)
+              {labels.fitView}
             </Button>
             <Button type="button" size="sm" variant="outline" onClick={resetLayout}>
-              Reset layout
+              {labels.resetLayout}
             </Button>
           </Panel>
         </ReactFlow>
       </div>
       <aside className="w-80 shrink-0 overflow-y-auto border-l bg-tasco-pale/30 p-4">
         {selected ? (
-          <Detail node={selected} tab={tab} />
+          <Detail node={selected} tab={tab} labels={labels} locale={locale} />
         ) : (
           <p className="text-sm text-muted-foreground">
-            Click a node for details. Drag nodes to rearrange. Press F to fit.
+            {labels.hint}
           </p>
         )}
       </aside>
@@ -259,11 +284,21 @@ function CanvasInner({
   );
 }
 
-function Detail({ node, tab }: { node: Node; tab: Tab }) {
+function Detail({
+  node,
+  tab,
+  labels,
+  locale,
+}: {
+  node: Node;
+  tab: Tab;
+  labels: WorkflowCanvasLabels;
+  locale: Locale;
+}) {
   const meta = node.data.meta as Record<string, unknown>;
   return (
     <div className="space-y-3 text-sm">
-      <Badge tone="sky">{tab}</Badge>
+      <Badge tone="sky">{labels.tabs[tab]}</Badge>
       <h3 className="text-lg font-semibold text-tasco-deep">
         {String(node.data.label)}
       </h3>
@@ -271,20 +306,29 @@ function Detail({ node, tab }: { node: Node; tab: Tab }) {
       {tab === "workflow" && (
         <>
           <div>
-            Live count: <strong>{String(node.data.count ?? 0)}</strong>
+            {labels.liveCount}: <strong>{String(node.data.count ?? 0)}</strong>
           </div>
           <div className="text-xs">
-            Transitions:{" "}
-            {JSON.stringify((meta as { transitions?: unknown }).transitions || [])}
+            <div className="font-semibold">{labels.transitions}:</div>
+            <ul className="mt-1 list-disc space-y-0.5 pl-4">
+              {((meta as { transitions?: WorkflowTransition[] }).transitions || []).map((t) => (
+                <li key={t.to}>
+                  {getDictionary(locale).caseStates[t.to]}:{" "}
+                  {transitionText(node.id as CaseState, t.to, t.trigger, locale)}
+                </li>
+              ))}
+            </ul>
           </div>
         </>
       )}
       {tab === "process" && (
         <>
-          <div>Lane: {String(node.data.lane || "")}</div>
+          <div>
+            {labels.lane}: {String(node.data.lane || "")}
+          </div>
           {Boolean(node.data.assumption) && (
             <div className="rounded-lg border border-dashed border-tasco-sky/50 bg-white p-2 text-xs">
-              Assumption: {String(node.data.assumption)}
+              {labels.assumption}: {String(node.data.assumption)}
             </div>
           )}
         </>
@@ -298,7 +342,7 @@ function Detail({ node, tab }: { node: Node; tab: Tab }) {
                 {f.name}: {f.type}
               </div>
               <div className="text-muted-foreground">
-                Full access: {f.fullAccess.join(", ")}
+                {labels.fullAccess}: {f.fullAccess.join(", ")}
               </div>
             </div>
           ))}
@@ -308,7 +352,15 @@ function Detail({ node, tab }: { node: Node; tab: Tab }) {
   );
 }
 
-export function WorkflowCanvas({ counts }: { counts: Record<string, number> }) {
+export function WorkflowCanvas({
+  counts,
+  labels,
+  locale,
+}: {
+  counts: Record<string, number>;
+  labels: WorkflowCanvasLabels;
+  locale: Locale;
+}) {
   const [tab, setTab] = useState<Tab>("workflow");
   return (
     <div className="space-y-3">
@@ -321,12 +373,12 @@ export function WorkflowCanvas({ counts }: { counts: Record<string, number> }) {
             variant={tab === t ? "default" : "outline"}
             onClick={() => setTab(t)}
           >
-            {t === "process" ? "Business process" : t === "workflow" ? "Workflow states" : "Data schema"}
+            {labels.tabs[t]}
           </Button>
         ))}
       </div>
       <ReactFlowProvider>
-        <CanvasInner tab={tab} counts={counts} />
+        <CanvasInner tab={tab} counts={counts} labels={labels} locale={locale} />
       </ReactFlowProvider>
     </div>
   );

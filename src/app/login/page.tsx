@@ -11,25 +11,12 @@ import { getDictionary } from "@/lib/i18n/dictionaries";
 const CUSTOMERS: {
   key: DemoCustomerId;
   label: string;
-  blurb: string;
   path?: string;
 }[] = [
-  {
-    key: "minh",
-    label: "Anh Minh",
-    blurb: "Happy-path · Virtual Office · high score · VETC active",
-  },
-  {
-    key: "lan",
-    label: "Chị Lan",
-    blurb: "Ignores reminder · voice call · handover",
-    path: `/call/${getDemoCustomerId("lan")}`,
-  },
-  {
-    key: "tuan",
-    label: "Anh Tuấn",
-    blurb: "Incomplete vehicle data · confirm in chat",
-  },
+  { key: "minh", label: "Anh Minh" },
+  { key: "lan", label: "Chị Lan", path: `/call/${getDemoCustomerId("lan")}` },
+  // Tuấn's story is confirming incomplete vehicle data; Classic chat shows the "needs confirmation" badge.
+  { key: "tuan", label: "Anh Tuấn", path: `/chat/${getDemoCustomerId("tuan")}` },
 ];
 
 const STAFF_IMG: Partial<Record<PersonaId, string>> = {
@@ -75,7 +62,7 @@ export default async function LoginPage({
                   {dict.home.personaCustomer}
                 </div>
                 <p className="text-sm text-white/80">
-                  {dict.login.customerOffice}
+                  {dict.login.customerEntry}
                 </p>
               </div>
             </div>
@@ -97,7 +84,7 @@ export default async function LoginPage({
                     className="w-full rounded-2xl border border-border bg-tasco-pale/40 px-4 py-3 text-left transition hover:border-tasco-sky/50 hover:bg-tasco-pale"
                   >
                     <div className="font-semibold text-tasco-deep">{c.label}</div>
-                    <div className="text-xs text-muted-foreground">{c.blurb}</div>
+                    <div className="text-xs text-muted-foreground">{dict.demoCustomers[c.key]}</div>
                   </button>
                 </form>
               ))}
@@ -108,7 +95,7 @@ export default async function LoginPage({
             {(Object.keys(PERSONAS) as PersonaId[])
               .filter((id) => id !== "customer")
               .map((id) => {
-                const p = PERSONAS[id];
+                const p = dict.personas[id];
                 const img = STAFF_IMG[id] || "/brand/persona-ops.jpg";
                 return (
                   <form

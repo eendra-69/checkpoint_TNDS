@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getAuth } from "@/lib/auth";
 import { getCustomerUiMode } from "@/lib/customer-mode";
 import { getSession } from "@/lib/session";
-import { PERSONAS, hasPermission, type Permission } from "@/lib/rbac";
+import { hasPermission, type Permission } from "@/lib/rbac";
 import { PersonaPill } from "@/components/persona-pill";
 import { DemoWatermark } from "@/components/demo-watermark";
 import { ModeToggle } from "@/components/mode-toggle";
@@ -77,7 +77,11 @@ export async function AppShell({
                 <ShellTourButton />
                 {isCustomer && <ModeToggle mode={uiMode} labels={dict.chrome} />}
                 {auth ? (
-                  <PersonaPill auth={auth} labels={dict.personaPill} />
+                  <PersonaPill
+                    auth={auth}
+                    labels={dict.personaPill}
+                    personaLabel={dict.personas[auth.persona].label}
+                  />
                 ) : (
                   <Link
                     href="/login"
@@ -113,7 +117,7 @@ export async function AppShell({
                 ))}
                 {auth && (
                   <span className="ml-auto self-center text-xs text-white/50">
-                    {PERSONAS[auth.persona].label}
+                    {dict.personas[auth.persona].label}
                   </span>
                 )}
               </nav>

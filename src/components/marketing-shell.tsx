@@ -45,7 +45,11 @@ export async function MarketingShell({
               <LanguageToggle locale={locale} />
               <ShellTourButton />
               {auth ? (
-                <PersonaPill auth={auth} labels={dict.personaPill} />
+                <PersonaPill
+                  auth={auth}
+                  labels={dict.personaPill}
+                  personaLabel={dict.personas[auth.persona].label}
+                />
               ) : (
                 <Link
                   href="/login"

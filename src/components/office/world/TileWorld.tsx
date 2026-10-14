@@ -16,10 +16,16 @@ const TILE_COLOR: Record<number, string> = {
 };
 
 export function TileWorld() {
-  const backdrop = useTexture("/office/backdrop-city.png");
-  backdrop.colorSpace = THREE.SRGBColorSpace;
-  backdrop.magFilter = THREE.NearestFilter;
-  backdrop.minFilter = THREE.NearestFilter;
+  // Configure a clone: the texture from useTexture is cached and shared.
+  const backdropTex = useTexture("/office/backdrop-city.png");
+  const backdrop = useMemo(() => {
+    const t = backdropTex.clone();
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.magFilter = THREE.NearestFilter;
+    t.minFilter = THREE.NearestFilter;
+    t.needsUpdate = true;
+    return t;
+  }, [backdropTex]);
 
   const banner = useMemo(() => createTascoBannerTexture(), []);
 

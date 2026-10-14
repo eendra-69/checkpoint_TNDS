@@ -4,14 +4,16 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useState,
+  useSyncExternalStore,
 } from "react";
+import { usePathname } from "next/navigation";
 import type { PersonaId } from "@/lib/types";
+import { pageStepsFor } from "@/lib/page-tours";
 import {
+  introStepsFor,
   onboardingUi,
-  stepsFor,
   storageKeyFor,
   type OnboardingLocale,
   type OnboardingStep,
@@ -24,6 +26,8 @@ type Ctx = {
   stepIndex: number;
   steps: OnboardingStep[];
   kind: Kind;
+  /** JRPG window styling: only inside the Virtual Office. */
+  jrpg: boolean;
   locale: OnboardingLocale;
   ui: (typeof onboardingUi)[OnboardingLocale];
   locksOffice: boolean;
@@ -35,6 +39,8 @@ type Ctx = {
 };
 
 const OnboardingContext = createContext<Ctx | null>(null);
+
+const subscribeNever = () => () => {};
 
 function readDone(key: string) {
   try {
@@ -67,23 +73,32 @@ export function OnboardingProvider({
       ? "customer"
       : "staff";
   const key = storageKeyFor(kind, persona || undefined);
-  const steps = useMemo(() => stepsFor(kind, locale), [kind, locale]);
+  const pathname = usePathname();
+  // "intro": first visit for this persona (intro, then this page). "page": the Tour button.
+  const [mode, setMode] = useState<"intro" | "page">("intro");
+  const steps = useMemo(() => {
+    const page = pageStepsFor(pathname, locale);
+    if (mode === "page" && page.length > 0) return page;
+    return [...introStepsFor(kind, locale), ...page];
+  }, [mode, pathname, kind, locale]);
   const ui = onboardingUi[locale];
+  const onOffice = pathname === "/office" || pathname.startsWith("/office/");
 
-  const [open, setOpen] = useState(false);
+  // False during SSR and hydration, true afterwards: the tour only ever renders client-side,
+  // so reading localStorage below cannot cause a hydration mismatch.
+  const ready = useSyncExternalStore(subscribeNever, () => true, () => false);
+  const autoOpen = () => typeof window !== "undefined" && !readDone(key);
+  const [open, setOpen] = useState(autoOpen);
   const [stepIndex, setStepIndex] = useState(0);
-  const [ready, setReady] = useState(false);
 
-  useEffect(() => {
-    setReady(true);
-    const done = readDone(key);
-    if (!done) {
-      setStepIndex(0);
-      setOpen(true);
-    } else {
-      setOpen(false);
-    }
-  }, [key]);
+  // Persona changed without a remount: show that persona's first-visit intro if unseen.
+  const [shownFor, setShownFor] = useState(key);
+  if (shownFor !== key) {
+    setShownFor(key);
+    setMode("intro");
+    setStepIndex(0);
+    setOpen(autoOpen());
+  }
 
   const finish = useCallback(() => {
     writeDone(key);
@@ -94,6 +109,7 @@ export function OnboardingProvider({
   const start = useCallback(
     (force = true) => {
       if (!force && readDone(key)) return;
+      setMode("page");
       setStepIndex(0);
       setOpen(true);
     },
@@ -119,9 +135,10 @@ export function OnboardingProvider({
     stepIndex,
     steps,
     kind,
+    jrpg: onOffice,
     locale,
     ui,
-    locksOffice: ready && open && kind === "customer",
+    locksOffice: ready && open && onOffice,
     start,
     next,
     back,

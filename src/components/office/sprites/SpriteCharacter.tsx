@@ -28,13 +28,14 @@ export function SpriteCharacter({
   scale?: number;
   showAlert?: boolean;
 }) {
+  // useTexture returns a cached, shared texture: configure our own clone, never the original.
   const tex = useTexture(url);
-  tex.colorSpace = THREE.SRGBColorSpace;
 
   const cols = 3;
   const rows = 4;
   const map = useMemo(() => {
     const t = tex.clone();
+    t.colorSpace = THREE.SRGBColorSpace;
     t.repeat.set(1 / cols, 1 / rows);
     t.magFilter = THREE.NearestFilter;
     t.minFilter = THREE.NearestFilter;
@@ -47,13 +48,10 @@ export function SpriteCharacter({
   const accum = useRef(0);
   const bobY = useRef(0);
   const root = useRef<THREE.Group>(null);
-  const facingRef = useRef(facing);
-  const walkingRef = useRef(walking);
-  facingRef.current = facing;
-  walkingRef.current = walking;
 
+  // R3F calls the latest useFrame callback each frame, so props can be read directly.
   useFrame((_, dt) => {
-    if (walkingRef.current) {
+    if (walking) {
       accum.current += dt;
       if (accum.current > 0.14) {
         accum.current = 0;
@@ -64,7 +62,7 @@ export function SpriteCharacter({
       frame.current = 1;
       bobY.current = Math.sin(performance.now() / 500) * 0.015;
     }
-    const row = FACING_ROW[facingRef.current];
+    const row = FACING_ROW[facing];
     map.offset.set(frame.current / cols, 1 - (row + 1) / rows);
     if (root.current) root.current.position.y = bobY.current;
   });

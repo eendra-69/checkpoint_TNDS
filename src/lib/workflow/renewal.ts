@@ -1,4 +1,4 @@
-import type { CaseState, PersonaId } from "../types";
+import type { CaseState, Certificate, DemoSession, PersonaId } from "../types";
 import type { Permission } from "../rbac";
 
 export type WorkflowTransition = {
@@ -173,6 +173,16 @@ export const WORKFLOW_NODES: WorkflowNode[] = [
 export function canTransition(from: CaseState, to: CaseState): boolean {
   const node = WORKFLOW_NODES.find((n) => n.id === from);
   return Boolean(node?.transitions.some((t) => t.to === to));
+}
+
+/** The certificate on the customer's policy, if this renewal was already issued. */
+export function currentCertificate(
+  session: DemoSession,
+  customerId: string,
+): Certificate | undefined {
+  const policy = session.policies.find((p) => p.customerId === customerId);
+  if (!policy?.certificateId) return undefined;
+  return session.certificates.find((c) => c.id === policy.certificateId);
 }
 
 export function transitionMeta(from: CaseState, to: CaseState) {

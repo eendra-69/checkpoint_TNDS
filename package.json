@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "office:assets": "node scripts/process-office-assets.mjs"
+    "office:assets": "node scripts/process-office-assets.mjs",
+    "test:e2e": "playwright test",
+    "test:e2e:report": "playwright show-report"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.78",
@@ -40,6 +42,7 @@
     "zod": "^4.6.6"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.0",
     "@tailwindcss/turbopack": "^4",
     "@types/dagre": "^0.7.54",
     "@types/node": "^20",

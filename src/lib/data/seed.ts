@@ -51,6 +51,9 @@ function addDays(base: Date, days: number): string {
   return d.toISOString();
 }
 
+/** Placeholder insurer name stored on synthetic policies; the verify page localizes it. */
+export const PILOT_INSURER = "Insurer (pilot partner)";
+
 export const DEMO_CUSTOMERS: Record<
   "minh" | "lan" | "tuan",
   { customer: Customer; vehicle: Vehicle; policy: Policy; vetc: VetcActivity }
@@ -83,7 +86,7 @@ export const DEMO_CUSTOMERS: Record<
     customerId: minhCustomer.id,
     vehicleId: minhVehicle.id,
     product: "TNDS",
-    insurer: "Insurer (pilot partner)",
+    insurer: PILOT_INSURER,
     premiumVnd: getRegulatedPremium("car_under_6"),
     startsAt: addDays(now, -344),
     expiresAt: addDays(now, 21),
@@ -122,7 +125,7 @@ export const DEMO_CUSTOMERS: Record<
     customerId: lanCustomer.id,
     vehicleId: lanVehicle.id,
     product: "TNDS",
-    insurer: "Insurer (pilot partner)",
+    insurer: PILOT_INSURER,
     premiumVnd: getRegulatedPremium("car_under_6"),
     startsAt: addDays(now, -350),
     expiresAt: addDays(now, 12),
@@ -161,7 +164,7 @@ export const DEMO_CUSTOMERS: Record<
     customerId: tuanCustomer.id,
     vehicleId: tuanVehicle.id,
     product: "TNDS",
-    insurer: "Insurer (pilot partner)",
+    insurer: PILOT_INSURER,
     premiumVnd: getRegulatedPremium("car_under_6"),
     startsAt: addDays(now, -330),
     expiresAt: addDays(now, 28),
@@ -246,7 +249,7 @@ function generateBulk(count: number, now: Date) {
       customerId: id,
       vehicleId: vehicle.id,
       product: "TNDS",
-      insurer: "Insurer (pilot partner)",
+      insurer: PILOT_INSURER,
       premiumVnd: getRegulatedPremium(seats),
       startsAt: addDays(now, expireOffset - 365),
       expiresAt: addDays(now, expireOffset),
@@ -285,29 +288,31 @@ export function defaultSettings(): SessionSettings {
 export function createSeedSession(sessionId: string): DemoSession {
   const now = new Date();
   const bulk = generateBulk(80, now);
+  // Fresh copies: sessions mutate these, and the in-memory store must never touch the shared seed.
+  const demo = structuredClone(DEMO_CUSTOMERS);
 
   const customers = [
-    DEMO_CUSTOMERS.minh.customer,
-    DEMO_CUSTOMERS.lan.customer,
-    DEMO_CUSTOMERS.tuan.customer,
+    demo.minh.customer,
+    demo.lan.customer,
+    demo.tuan.customer,
     ...bulk.customers,
   ];
   const vehicles = [
-    DEMO_CUSTOMERS.minh.vehicle,
-    DEMO_CUSTOMERS.lan.vehicle,
-    DEMO_CUSTOMERS.tuan.vehicle,
+    demo.minh.vehicle,
+    demo.lan.vehicle,
+    demo.tuan.vehicle,
     ...bulk.vehicles,
   ];
   const policies = [
-    DEMO_CUSTOMERS.minh.policy,
-    DEMO_CUSTOMERS.lan.policy,
-    DEMO_CUSTOMERS.tuan.policy,
+    demo.minh.policy,
+    demo.lan.policy,
+    demo.tuan.policy,
     ...bulk.policies,
   ];
   const vetc = [
-    DEMO_CUSTOMERS.minh.vetc,
-    DEMO_CUSTOMERS.lan.vetc,
-    DEMO_CUSTOMERS.tuan.vetc,
+    demo.minh.vetc,
+    demo.lan.vetc,
+    demo.tuan.vetc,
     ...bulk.vetc,
   ];
 
@@ -337,6 +342,7 @@ export function createSeedSession(sessionId: string): DemoSession {
         persona: "admin",
         action: "session.seeded",
         detail: `Seeded ${customers.length} synthetic car owners`,
+        params: { n: customers.length },
       },
     ],
     campaigns: [],

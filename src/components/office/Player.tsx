@@ -94,6 +94,13 @@ export function Player({
     if (sync.current > 0.05) {
       sync.current = 0;
       setPos([sim.current.x, 0, sim.current.z]);
+      // Dev-only hook so e2e tests can walk to a spot by position instead of by timing.
+      if (process.env.NODE_ENV !== "production") {
+        (window as unknown as { __officePlayer?: { x: number; z: number } }).__officePlayer = {
+          x: sim.current.x,
+          z: sim.current.z,
+        };
+      }
     }
 
     const near = nearestInteractable(sim.current.x, sim.current.z);

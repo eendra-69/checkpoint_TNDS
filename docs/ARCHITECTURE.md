@@ -14,7 +14,7 @@
 ## Directory map
 
 ```
-app/                          ← git root
+./                            ← git root (the Next.js app)
 ├── src/app/                  routes, layouts, API, server actions
 ├── src/components/           UI (shells, chat, office, workflow, assistant)
 ├── src/lib/                  domain: session, rbac, scoring, i18n, agent
@@ -44,9 +44,9 @@ app/                          ← git root
 | `/admin` | `settings:manage` | LLM + RBAC matrix |
 | `/admin/workflow` | `workflow:view` | React Flow canvas |
 | `/api/chat` | signed in | Renewal agent |
-| `/api/assistant` | signed in | Floating pitch assistant (scripted) |
+| `/api/assistant` | public (guests: start guide only) · staff: `canUseAssistant` | Floating pitch assistant (scripted) |
 
-`proxy.ts` public prefixes: `/`, `/login`, `/forbidden`, `/verify`, static files.
+`proxy.ts` public prefixes: `/`, `/login`, `/forbidden`, `/verify`, static files, and `/api/assistant` (the route answers guests with the start guide only and checks auth for everything else).
 
 ### Server actions (`src/app/actions`)
 
@@ -78,7 +78,8 @@ app/                          ← git root
 | `llm/resolve.ts` | Gateway / OpenAI / Anthropic / Google / Ollama / LM Studio |
 | `i18n/*` | Locale cookie + dictionaries |
 | `customer-mode.ts` | `tasco-ui-mode` |
-| `onboarding-steps.ts` | First-run tour copy |
+| `onboarding-steps.ts` | First-visit persona intro (once per persona, ends with a pointer to the Tour button) |
+| `page-tours.ts` | What each page is for — shown by the header **Tour** button, keyed by route (longest prefix wins) |
 | `masking.ts` / `audit.ts` | PII + append-only log |
 
 ### UI shells
@@ -90,7 +91,7 @@ Floating assistant: `AssistantHost` in root layout. Hidden for customers; script
 
 ## Request flow (chat)
 
-1. Client (`RenewalChat` or `CsPanel`) POSTs `{ customerId, messages }` to `/api/chat`.
+1. Client (`RenewalChat`, `CsPanel` or `VoiceCall`) POSTs `{ customerId, channel, messages }` to `/api/chat`. `channel` (`zalo` / `office` / `voice` / `vetc`) is recorded on handovers.
 2. Auth + customer ownership check.
 3. `preferredLanguage` set from locale cookie.
 4. Case state bumped to `engaged` if still `scored`/`reminded`/`link_sent`.
@@ -98,7 +99,7 @@ Floating assistant: `AssistantHost` in root layout. Hidden for customers; script
 6. **No LLM key** → `demoRenewalReply` JSON.
 7. **LLM key** → `streamText` with `renewalSystemPrompt` + tools.
 
-Demo client currently expects JSON (`data.demo && data.text`), not a UI message stream. If you enable keys, the Classic chat fallback is a short “LLM stream mode” notice — streaming UI is incomplete.
+All chat clients (Classic `RenewalChat`, office `CsPanel`, `VoiceCall`) call `sendRenewalChat` in `src/lib/agent/chat-client.ts`, which reads either shape: demo JSON, or the AI SDK UI message stream (text renders as it arrives; a certificate id is picked up from the reply text or the `issueCertificate` tool result).
 
 ## Cookies
 

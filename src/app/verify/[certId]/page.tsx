@@ -3,11 +3,12 @@ import { AppShell } from "@/components/app-shell";
 import { Badge } from "@/components/ui/badge";
 import { getAuth } from "@/lib/auth";
 import { getOrCreateSession } from "@/lib/session";
-import { formatVnd } from "@/lib/utils";
+import { formatDate, formatVnd } from "@/lib/utils";
 import { notFound } from "next/navigation";
 import QRCode from "qrcode";
 import { getLocale } from "@/lib/i18n/locale";
 import { getDictionary } from "@/lib/i18n/dictionaries";
+import { PILOT_INSURER } from "@/lib/data/seed";
 
 export default async function VerifyPage({
   params,
@@ -69,7 +70,7 @@ export default async function VerifyPage({
           <div className="space-y-4 bg-white/90 p-6 backdrop-blur-sm">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <div className="text-xs text-muted-foreground">Certificate ID</div>
+                <div className="text-xs text-muted-foreground">{dict.verify.certificateId}</div>
                 <div className="font-mono text-sm font-semibold">{cert.id}</div>
                 <div className="mt-3 text-xs text-muted-foreground">
                   {locale === "vi" ? "Xe" : "Vehicle"}
@@ -87,11 +88,11 @@ export default async function VerifyPage({
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div className="rounded-xl bg-tasco-pale/70 p-3">
                 <div className="text-xs text-muted-foreground">{dict.verify.issued}</div>
-                <div className="font-medium">{cert.issuedAt.slice(0, 10)}</div>
+                <div className="font-medium">{formatDate(cert.issuedAt)}</div>
               </div>
               <div className="rounded-xl bg-tasco-pale/70 p-3">
                 <div className="text-xs text-muted-foreground">{dict.verify.expires}</div>
-                <div className="font-medium">{cert.expiresAt.slice(0, 10)}</div>
+                <div className="font-medium">{formatDate(cert.expiresAt)}</div>
               </div>
               <div className="rounded-xl bg-tasco-pale/70 p-3">
                 <div className="text-xs text-muted-foreground">{dict.verify.premium}</div>
@@ -101,7 +102,9 @@ export default async function VerifyPage({
               </div>
               <div className="rounded-xl bg-tasco-pale/70 p-3">
                 <div className="text-xs text-muted-foreground">{dict.verify.insurer}</div>
-                <div className="font-medium">{cert.insurer}</div>
+                <div className="font-medium">
+                  {cert.insurer === PILOT_INSURER ? dict.verify.pilotInsurer : cert.insurer}
+                </div>
               </div>
             </div>
             <p className="text-[11px] text-muted-foreground">
