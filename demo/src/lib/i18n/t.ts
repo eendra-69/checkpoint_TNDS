@@ -31,7 +31,12 @@ export function t(
     return key;
   }
   if (!vars) return cur;
-  return cur.replace(/\{(\w+)\}/g, (_, name: string) =>
+  return format(cur, vars);
+}
+
+/** Fill `{name}` placeholders in a dictionary string. */
+export function format(template: string, vars: Record<string, string | number>): string {
+  return template.replace(/\{(\w+)\}/g, (_, name: string) =>
     vars[name] !== undefined ? String(vars[name]) : `{${name}}`,
   );
 }

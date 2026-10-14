@@ -6,6 +6,9 @@ import { requirePermission } from "@/lib/auth";
 import { appendAudit } from "@/lib/audit";
 import { getOrCreateSession, saveSession } from "@/lib/session";
 import type { OutcomeCode } from "@/lib/types";
+import { currentCertificate } from "@/lib/workflow/renewal";
+
+const CLOSING_OUTCOMES: OutcomeCode[] = ["renewed", "not_interested"];
 
 /**
  * "Reveal with reason" is a compliance control the /compliance page advertises.
@@ -31,6 +34,7 @@ export async function revealPii(raw: unknown) {
     customerId: input.customerId,
     action: "pii.reveal",
     detail: `Revealed ${input.field}`,
+    params: { field: input.field },
     reason: input.reason,
   });
   await saveSession(session);
@@ -45,6 +49,10 @@ export async function logOutcome(input: {
 }) {
   const auth = await requirePermission("outcome:log");
   const session = await getOrCreateSession(auth.sessionId);
+  // PRODUCT rule 4: telesales never issues, so "renewed" needs the customer's own certificate.
+  if (input.code === "renewed" && !currentCertificate(session, input.customerId)) {
+    throw new Error("Cannot log 'renewed' before the customer has a certificate");
+  }
   session.outcomes.unshift({
     customerId: input.customerId,
     code: input.code,
@@ -52,13 +60,18 @@ export async function logOutcome(input: {
   });
   if (input.handoverId) {
     const ho = session.handovers.find((h) => h.id === input.handoverId);
-    if (ho) ho.status = "resolved";
+    // Only a final outcome leaves the queue; a callback or sent link is still open work.
+    if (ho) ho.status = CLOSING_OUTCOMES.includes(input.code) ? "resolved" : "in_progress";
+  }
+  if (input.code === "not_interested") {
+    session.caseStates[input.customerId] = "opted_out";
   }
   await appendAudit(session.id, {
     persona: auth.persona,
     customerId: input.customerId,
     action: "outcome.log",
     detail: input.code,
+    params: { code: input.code },
   });
   await saveSession(session);
   revalidatePath("/agent");

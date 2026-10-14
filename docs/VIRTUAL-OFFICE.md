@@ -10,7 +10,7 @@ A walkable **pixel / HD-2D JRPG** Tasco office (not a 3D isometric building). Pl
 
 - Desktop: WASD / arrows, **E** to interact, **Esc** to close.
 - Mobile: on-screen `TouchPad` + **A** interact.
-- Onboarding tour **locks movement** until dismissed (`OnboardingProvider.locksOffice`).
+- The header **Tour** locks movement while it is open (`OnboardingProvider.locksOffice`).
 
 ## File map
 

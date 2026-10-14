@@ -133,6 +133,7 @@ export async function saveLlmSettings(input: {
     persona: auth.persona,
     action: "settings.llm",
     detail: `Provider ${input.defaultProvider} / ${input.defaultModel}`,
+    params: { provider: input.defaultProvider, model: input.defaultModel },
   });
   await saveSession(session);
   revalidatePath("/admin");
@@ -175,6 +176,7 @@ export async function togglePermission(input: {
     persona: auth.persona,
     action: "settings.permission_toggle",
     detail: `${input.persona} ${input.permission} = ${input.enabled}`,
+    params: { persona: input.persona, permission: input.permission, enabled: String(input.enabled) },
   });
   await saveSession(session);
   await syncPermCookie(auth, session.settings.permissionOverrides);

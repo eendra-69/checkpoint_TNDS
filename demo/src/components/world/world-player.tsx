@@ -110,6 +110,13 @@ export function WorldPlayer({
     // Written straight to the scene graph. Routing this through React state
     // re-rendered the entire Canvas subtree 20x a second to move one group.
     if (root.current) root.current.position.set(sim.current.x, 0, sim.current.z);
+    // Dev-only hook so e2e tests can walk to a spot by position instead of by timing.
+    if (process.env.NODE_ENV !== "production") {
+      (window as unknown as { __worldPlayer?: { x: number; z: number } }).__worldPlayer = {
+        x: sim.current.x,
+        z: sim.current.z,
+      };
+    }
 
     // Presence broadcast — every frame is fine, the hook throttles the fetch.
     moveLatch.current += dt;

@@ -11,6 +11,8 @@ function isPublic(pathname: string) {
     return true;
   }
   if (pathname.startsWith("/api/auth")) return true;
+  // The route itself answers guests with the start guide only and checks auth for anything else.
+  if (pathname === "/api/assistant") return true;
   if (pathname.startsWith("/_next") || pathname.startsWith("/favicon")) {
     return true;
   }

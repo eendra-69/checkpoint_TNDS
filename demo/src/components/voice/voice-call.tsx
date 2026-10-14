@@ -3,6 +3,30 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ChatText, plainChatText } from "@/components/chat/chat-text";
+import type { Locale } from "@/lib/i18n/locale";
+import { format } from "@/lib/i18n/t";
+import { formatDate } from "@/lib/utils";
+import { ChatRequestError, sendRenewalChat } from "@/lib/agent/chat-client";
+
+export type VoiceLabels = {
+  engine: string;
+  noConsent: string;
+  idle: string;
+  bot: string;
+  user: string;
+  start: string;
+  speak: string;
+  listening: string;
+  askHuman: string;
+  askHumanUtterance: string;
+  typedPlaceholder: string;
+  send: string;
+  noRecognition: string;
+  fallbackReply: string;
+  errorPrefix: string;
+  opening: string;
+};
 
 type Line = { role: "bot" | "user"; text: string };
 
@@ -23,6 +47,8 @@ export function VoiceCall({
   expiresAt,
   hasCallConsent,
   engine,
+  locale = "vi",
+  labels,
 }: {
   customerId: string;
   customerName: string;
@@ -30,7 +56,10 @@ export function VoiceCall({
   expiresAt: string;
   hasCallConsent: boolean;
   engine: "elevenlabs" | "webspeech";
+  locale?: Locale;
+  labels: VoiceLabels;
 }) {
+  const speechLang = locale === "en" ? "en-US" : "vi-VN";
   const [lines, setLines] = useState<Line[]>([]);
   const [listening, setListening] = useState(false);
   const [typed, setTyped] = useState("");
@@ -38,39 +67,42 @@ export function VoiceCall({
 
   function speak(text: string) {
     if (typeof window === "undefined" || !window.speechSynthesis) return;
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = "vi-VN";
+    const u = new SpeechSynthesisUtterance(plainChatText(text).slice(0, 220));
+    u.lang = speechLang;
     window.speechSynthesis.cancel();
     window.speechSynthesis.speak(u);
   }
 
   async function botTurn(userText: string) {
-    setLines((l) => [...l, { role: "user", text: userText }]);
-    const res = await fetch("/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+    setLines((l) => [...l, { role: "user", text: userText }, { role: "bot", text: "" }]);
+    const setBotLine = (text: string) =>
+      setLines((l) => [...l.slice(0, -1), { role: "bot", text }]);
+    let reply: string;
+    try {
+      const res = await sendRenewalChat({
         customerId,
-        messages: [
-          {
-            id: crypto.randomUUID(),
-            role: "user",
-            parts: [{ type: "text", text: userText }],
-          },
-        ],
-      }),
-    });
-    const data = await res.json();
-    const reply =
-      data.text ||
-      "Xin lỗi, em chưa nghe rõ. Anh/chị muốn gặp nhân viên không?";
-    setLines((l) => [...l, { role: "bot", text: reply }]);
-    speak(reply.slice(0, 220));
+        channel: "voice",
+        turns: [{ id: crypto.randomUUID(), role: "user", content: userText }],
+        onText: setBotLine,
+      });
+      reply = res.text || labels.fallbackReply;
+    } catch (err) {
+      reply =
+        err instanceof ChatRequestError
+          ? `${labels.errorPrefix}: ${err.message}`
+          : labels.fallbackReply;
+    }
+    setBotLine(reply);
+    speak(reply);
   }
 
   function startCall() {
     if (!hasCallConsent) return;
-    const opening = `Xin chào ${customerName}. Em gọi về TNDS xe biển ${plate}, hết hạn ${expiresAt.slice(0, 10)}. Anh/chị có muốn gia hạn hoặc gặp nhân viên không?`;
+    const opening = format(labels.opening, {
+      name: customerName,
+      plate,
+      expires: formatDate(expiresAt),
+    });
     setLines([{ role: "bot", text: opening }]);
     speak(opening);
   }
@@ -82,11 +114,11 @@ export function VoiceCall({
     };
     const SR = w.SpeechRecognition || w.webkitSpeechRecognition;
     if (!SR) {
-      setTyped("Browser speech recognition unavailable — type instead.");
+      setTyped(labels.noRecognition);
       return;
     }
     const recognition = new SR();
-    recognition.lang = "vi-VN";
+    recognition.lang = speechLang;
     recognition.interimResults = false;
     recognition.onresult = (event) => {
       const text = event.results[0][0].transcript;
@@ -109,9 +141,9 @@ export function VoiceCall({
     <div className="mx-auto max-w-md rounded-2xl border bg-card p-5 shadow-sm">
       <div className="flex items-center justify-between">
         <Badge tone={engine === "elevenlabs" ? "green" : "sky"}>
-          Voice engine: {engine === "elevenlabs" ? "ElevenLabs" : "Web Speech"}
+          {labels.engine}: {engine === "elevenlabs" ? "ElevenLabs" : "Web Speech"}
         </Badge>
-        {!hasCallConsent && <Badge tone="warn">No call consent</Badge>}
+        {!hasCallConsent && <Badge tone="warn">{labels.noConsent}</Badge>}
       </div>
       <div className="mt-6 flex flex-col items-center">
         <div className="relative flex h-28 w-28 items-center justify-center rounded-full bg-tasco-ink text-white">
@@ -125,7 +157,7 @@ export function VoiceCall({
       <div className="mt-4 max-h-56 space-y-2 overflow-y-auto rounded-xl bg-tasco-mist/50 p-3 text-sm">
         {lines.length === 0 && (
           <p className="text-muted-foreground">
-            Press start to begin the consent-based call.
+            {labels.idle}
           </p>
         )}
         {lines.map((l, i) => (
@@ -136,25 +168,27 @@ export function VoiceCall({
             }
           >
             <span className="text-[10px] font-bold uppercase opacity-60">
-              {l.role}
+              {l.role === "bot" ? labels.bot : labels.user}
             </span>
-            <div className="whitespace-pre-wrap">{l.text}</div>
+            <div className="whitespace-pre-wrap">
+              <ChatText text={l.text} />
+            </div>
           </div>
         ))}
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
         <Button onClick={startCall} disabled={!hasCallConsent}>
-          Start call
+          {labels.start}
         </Button>
         <Button variant="secondary" onClick={startListening} disabled={listening}>
-          {listening ? "Listening…" : "Speak"}
+          {listening ? labels.listening : labels.speak}
         </Button>
         <Button
           variant="outline"
-          onClick={() => void botTurn("Tôi muốn gặp nhân viên")}
+          onClick={() => void botTurn(labels.askHumanUtterance)}
         >
-          Ask for human
+          {labels.askHuman}
         </Button>
       </div>
 
@@ -170,11 +204,11 @@ export function VoiceCall({
         <input
           value={typed}
           onChange={(e) => setTyped(e.target.value)}
-          placeholder="Typed fallback…"
+          placeholder={labels.typedPlaceholder}
           className="h-10 flex-1 rounded-xl border px-3 text-sm"
         />
         <Button type="submit" size="sm">
-          Send
+          {labels.send}
         </Button>
       </form>
     </div>

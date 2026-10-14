@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export function OnboardingTour() {
-  const { open, steps, stepIndex, ui, next, back, skip, kind } = useOnboarding();
+  const { open, steps, stepIndex, ui, next, back, skip, jrpg } = useOnboarding();
   const step = steps[stepIndex];
 
   useEffect(() => {
@@ -24,7 +24,6 @@ export function OnboardingTour() {
   if (!open || !step) return null;
 
   const isLast = stepIndex >= steps.length - 1;
-  const jrpg = kind === "customer";
 
   return (
     <div
@@ -117,7 +116,7 @@ export function OnboardingTourButton({
   return (
     <button
       type="button"
-      onClick={() => start(true)}
+      onClick={start}
       disabled={open}
       className={cn(
         "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition disabled:opacity-50",

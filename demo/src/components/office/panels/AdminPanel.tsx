@@ -4,6 +4,9 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { CaseState, Claim, ConsentFlags } from "@/lib/types";
+import type { Locale } from "@/lib/i18n/locale";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { officeCopy } from "../office-copy";
 
 export function AdminPanel({
   customerId,
@@ -16,6 +19,7 @@ export function AdminPanel({
   onClose,
   onOpenClaims,
   onOpenCs,
+  locale = "vi",
 }: {
   customerId: string;
   customerName: string;
@@ -27,14 +31,17 @@ export function AdminPanel({
   onClose: () => void;
   onOpenClaims: () => void;
   onOpenCs: () => void;
+  locale?: Locale;
 }) {
+  const t = officeCopy(locale).adminPanel;
+  const dict = getDictionary(locale);
   return (
     <div className="jrpg-window pointer-events-auto max-h-[75vh] w-full max-w-xl overflow-y-auto">
       <div className="flex items-center justify-between border-b border-white/15 px-4 py-3">
         <div>
-          <div className="font-pixel text-sm tracking-wide text-tasco-lime">Admin Board</div>
+          <div className="font-pixel text-sm tracking-wide text-tasco-lime">{t.title}</div>
           <div className="text-[11px] text-white/70">
-            Theo dõi hồ sơ · quest log
+            {t.subtitle}
           </div>
         </div>
         <button
@@ -49,28 +56,28 @@ export function AdminPanel({
       <div className="space-y-4 p-4">
         <div className="rounded-xl border bg-tasco-mist/50 p-4">
           <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Pin · TNDS renewal
+            {t.renewalPin}
           </div>
           <h3 className="mt-1 font-display text-lg text-tasco-ink">
             {customerName} · {plate}
           </h3>
           <div className="mt-2 flex flex-wrap gap-2">
-            <Badge tone="sky">{caseState}</Badge>
-            {certificateId && <Badge tone="green">Certificate issued</Badge>}
+            <Badge tone="sky">{dict.caseStates[caseState] ?? caseState}</Badge>
+            {certificateId && <Badge tone="green">{t.certIssued}</Badge>}
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
             <Button size="sm" type="button" onClick={onOpenCs}>
-              Continue with CS
+              {t.continueCs}
             </Button>
             <Link href={`/chat/${customerId}`}>
               <Button size="sm" variant="outline" type="button">
-                Open Classic chat
+                {t.openClassic}
               </Button>
             </Link>
             {certificateId && (
               <Link href={`/verify/${certificateId}`}>
                 <Button size="sm" variant="success" type="button">
-                  View certificate
+                  {t.viewCert}
                 </Button>
               </Link>
             )}
@@ -79,18 +86,18 @@ export function AdminPanel({
 
         <div className="rounded-xl border bg-white p-4">
           <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Pin · Claims
+            {t.claimsPin}
           </div>
           {claims.length === 0 ? (
             <p className="mt-2 text-sm text-muted-foreground">
-              Chưa có hồ sơ bồi thường.
+              {t.noClaims}
             </p>
           ) : (
             <ul className="mt-2 space-y-2">
               {claims.map((c) => (
                 <li key={c.id} className="text-sm">
                   <span className="font-mono text-xs">{c.id}</span>{" "}
-                  <Badge tone="muted">{c.status}</Badge>
+                  <Badge tone="muted">{dict.claimStates[c.status]}</Badge>
                   <div className="text-muted-foreground">{c.note}</div>
                 </li>
               ))}
@@ -103,18 +110,18 @@ export function AdminPanel({
             type="button"
             onClick={onOpenClaims}
           >
-            Add claim photo
+            {t.addClaim}
           </Button>
         </div>
 
         <div className="rounded-xl border bg-white p-4">
           <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Pin · Consent checklist
+            {t.consentPin}
           </div>
           <ul className="mt-2 space-y-1 text-sm">
-            <li>Messaging: {consent.messaging ? "✓" : "✗"}</li>
-            <li>Calls: {consent.calls ? "✓" : "✗"}</li>
-            <li>Data use: {consent.dataUse ? "✓" : "✗"}</li>
+            <li>{t.messaging}: {consent.messaging ? "✓" : "✗"}</li>
+            <li>{t.calls}: {consent.calls ? "✓" : "✗"}</li>
+            <li>{t.dataUse}: {consent.dataUse ? "✓" : "✗"}</li>
           </ul>
         </div>
       </div>

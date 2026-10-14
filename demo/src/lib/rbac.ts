@@ -163,6 +163,15 @@ export function hasPermission(
   return resolvePermissions(persona, overrides).includes(permission);
 }
 
+/** Floating pitch assistant: staff only. Admin keeps it even if overrides drop `assistant:use`. */
+export function canUseAssistant(
+  persona: PersonaId,
+  overrides?: Partial<Record<PersonaId, string[]>>,
+): boolean {
+  if (persona === "customer") return false;
+  return persona === "admin" || hasPermission(persona, "assistant:use", overrides);
+}
+
 export function permissionForPath(pathname: string): Permission | null {
   const sorted = [...ROUTE_PERMISSIONS].sort(
     (a, b) => b.prefix.length - a.prefix.length,

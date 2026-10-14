@@ -84,6 +84,11 @@ async function startSignIn(input: SignInInput) {
     detail: `Signed in as ${PERSONAS[persona].label}${
       input.displayName ? ` (${input.displayName})` : ""
     }${input.customerKey ? ` (${input.customerKey})` : ""}`,
+    params: {
+      persona,
+      ...(input.displayName ? { name: input.displayName } : {}),
+      ...(input.customerKey ? { customer: input.customerKey } : {}),
+    },
   });
   await saveSession(session);
 
@@ -104,6 +109,14 @@ export async function resetDemo() {
   const auth = await getAuth();
   if (!auth) redirect("/login");
   await resetSession(auth.sessionId);
+  // The reset session has no permission overrides, so drop them from the cookie
+  // too, or the edge proxy keeps enforcing the matrix that was just wiped.
+  await setAuthCookie({
+    persona: auth.persona,
+    customerId: auth.customerId,
+    sessionId: auth.sessionId,
+    displayName: auth.displayName,
+  });
   // Back to the persona welcome screen, now with every counter back at zero —
   // which is exactly when a judge wants to see the "before" state.
   redirect("/");

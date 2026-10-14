@@ -11,6 +11,8 @@
     "lint": "npm --prefix demo run lint",
     "typecheck": "npm --prefix demo exec -- tsc --noEmit",
     "assets": "npm --prefix demo run office:assets",
-    "setup": "npm --prefix demo install"
+    "setup": "npm --prefix demo install",
+    "test:e2e": "npm --prefix demo run test:e2e",
+    "test:e2e:report": "npm --prefix demo run test:e2e:report"
   }
 }

@@ -116,8 +116,8 @@ export function SpriteCharacter({
   scale?: number;
   showAlert?: boolean;
 }) {
+  // useTexture returns a cached, shared texture: never mutate it; characterCell configures its own clones.
   const tex = useTexture(url);
-  tex.colorSpace = THREE.SRGBColorSpace;
 
   const w = 0.72 * scale;
   const h = 1.08 * scale;
@@ -145,18 +145,15 @@ export function SpriteCharacter({
   const root = useRef<THREE.Group>(null);
   const cellKey = useRef(-1);
   const cell = useRef<THREE.Texture>(initialCell);
-  const facingRef = useRef(facing);
-  const walkingRef = useRef(walking);
-  facingRef.current = facing;
-  walkingRef.current = walking;
 
+  // R3F calls the latest useFrame callback each frame, so props can be read directly.
   useFrame((_, dt) => {
     // Accumulated rather than read from the clock: the old code called
     // `performance.now()` every frame per character just to phase a sine wave,
     // and every character got a different phase. One add keeps the period.
     const ms = (elapsed.current += dt * 1000);
 
-    if (walkingRef.current) {
+    if (walking) {
       accum.current += dt;
       if (accum.current > FRAME_TIME) {
         accum.current = 0;
@@ -168,7 +165,7 @@ export function SpriteCharacter({
       bobY.current = Math.sin(ms / IDLE_BOB_MS) * 0.015;
     }
 
-    const row = FACING_ROW[facingRef.current];
+    const row = FACING_ROW[facing];
     const key = frame.current * ROWS + row;
     // Idle characters used to rewrite this offset 60 times a second to write
     // the same two numbers, so the cell is only looked up when it changes.

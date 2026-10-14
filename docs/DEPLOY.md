@@ -7,7 +7,7 @@
 - Production alias: **https://tasco-tnds-demo.vercel.app**
 - Linked config: `app/.vercel/project.json` (`prj_1Ay6P3xopvQcH392jfuPfmZ81Y9G`).
 
-Git working tree is **`app/`**, not the parent `2026 tasco` folder.
+The git working tree is the repository root, which is the Next.js app.
 
 ## Two deployables
 
@@ -81,7 +81,7 @@ That happens when the git author email is not a member of the Vercel team (this 
 **Working workaround (do not skip restoring `.git`):**
 
 1. `npx vercel build --prod`
-2. Temporarily move `app/.git` aside.
+2. Temporarily move `.git` aside.
 3. `npx vercel deploy --prebuilt --prod --yes`
 4. Move `.git` back immediately.
 

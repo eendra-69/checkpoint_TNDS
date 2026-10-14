@@ -1,9 +1,10 @@
 import type { DemoSession } from "../types";
-import { formatVnd } from "../utils";
+import { formatDate, formatVnd } from "../utils";
 import { getRegulatedPremium, COVERAGE_EXPLAIN } from "../pricing";
 import { nanoid } from "nanoid";
 import { appendAudit } from "../audit";
-import type { PersonaId } from "../types";
+import { currentCertificate } from "../workflow/renewal";
+import type { Channel, PersonaId } from "../types";
 
 /** Deterministic renewal replies when no LLM key is configured. */
 export async function demoRenewalReply(input: {
@@ -11,9 +12,10 @@ export async function demoRenewalReply(input: {
   customerId: string;
   userText: string;
   persona: PersonaId;
+  channel: Channel;
   save: () => Promise<void>;
 }): Promise<string> {
-  const { session, customerId, userText, persona, save } = input;
+  const { session, customerId, userText, persona, channel, save } = input;
   const text = userText.toLowerCase();
   const customer = session.customers.find((c) => c.id === customerId);
   if (!customer) return "I could not find that customer record.";
@@ -38,9 +40,15 @@ export async function demoRenewalReply(input: {
     session.handovers.unshift({
       id: `ho_${nanoid(8)}`,
       customerId,
-      fromChannel: "zalo",
-      summary: `${customer.fullNameVi} asked for a human. Plate ${vehicle.plate}, expires ${policy.expiresAt.slice(0, 10)}.`,
+      fromChannel: channel,
+      summary: `${customer.fullNameVi} asked for a human. Plate ${vehicle.plate}, expires ${formatDate(policy.expiresAt)}.`,
       reason: "Customer requested human",
+      template: {
+        kind: "requested_human",
+        customerName: customer.fullNameVi,
+        plate: vehicle.plate,
+        expiresAt: policy.expiresAt,
+      },
       status: "queued",
       createdAt: new Date().toISOString(),
     });
@@ -54,8 +62,8 @@ export async function demoRenewalReply(input: {
     });
     await save();
     return lang === "en"
-      ? `I've handed you to a telesales agent. They'll see: plate ${vehicle.plate}, expires ${policy.expiresAt.slice(0, 10)}.`
-      : `Em đã chuyển anh/chị sang nhân viên telesales. Họ sẽ thấy tóm tắt: biển ${vehicle.plate}, hết hạn ${policy.expiresAt.slice(0, 10)}.`;
+      ? `I've handed you to a telesales agent. They'll see: plate ${vehicle.plate}, expires ${formatDate(policy.expiresAt)}.`
+      : `Em đã chuyển anh/chị sang nhân viên telesales. Họ sẽ thấy tóm tắt: biển ${vehicle.plate}, hết hạn ${formatDate(policy.expiresAt)}.`;
   }
 
   if (
@@ -65,12 +73,26 @@ export async function demoRenewalReply(input: {
     text.includes("momo") ||
     text.includes("vietqr")
   ) {
+    // PRODUCT rule 3: an incomplete vehicle must be confirmed before issue.
+    if (vehicle.incomplete) {
+      return lang === "en"
+        ? `Before payment, please confirm your vehicle: **${vehicle.make} ${vehicle.model}**, plate **${vehicle.plate}**. Type "confirm" if this is correct.`
+        : `Trước khi thanh toán, anh/chị vui lòng xác nhận xe: **${vehicle.make} ${vehicle.model}**, biển **${vehicle.plate}**. Gõ "xác nhận" nếu thông tin đúng.`;
+    }
+    const existing = currentCertificate(session, customerId);
+    if (existing) {
+      return lang === "en"
+        ? `This policy is already renewed until ${formatDate(existing.expiresAt)}.\n\nDigital certificate: **${existing.id}**\nVerify: /verify/${existing.id}`
+        : `Hợp đồng đã được gia hạn đến ${formatDate(existing.expiresAt)}.\n\nGiấy chứng nhận điện tử: **${existing.id}**\nXác minh: /verify/${existing.id}`;
+    }
     const checkoutId = `chk_${nanoid(6)}`;
     const certId = `CERT-${nanoid(10).toUpperCase()}`;
     const issuedAt = new Date().toISOString();
     const expiresAt = new Date();
     expiresAt.setFullYear(expiresAt.getFullYear() + 1);
-    vehicle.incomplete = false;
+    // Paying without an explicit "confirm" step still confirms a complete vehicle
+    // (the guard above already refused an incomplete one).
+    if (session.caseStates[customerId] !== "confirmed") session.funnel.confirmed += 1;
 
     // Keep demo mode consistent with the real tool flow so the compliance
     // ledger shows the same created → paid → consumed trail either way.
@@ -99,7 +121,6 @@ export async function demoRenewalReply(input: {
     policy.certificateId = certId;
     policy.expiresAt = expiresAt.toISOString();
     session.caseStates[customerId] = "issued";
-    session.funnel.confirmed += 1;
     session.funnel.paid += 1;
     session.funnel.issued += 1;
     await appendAudit(session.id, {
@@ -107,6 +128,7 @@ export async function demoRenewalReply(input: {
       customerId,
       action: "demo.issue",
       detail: `Issued ${certId} via ${checkoutId}`,
+      params: { cert: certId, checkout: checkoutId },
     });
     await save();
     return lang === "en"
@@ -128,7 +150,6 @@ export async function demoRenewalReply(input: {
   }
 
   if (
-    vehicle.incomplete ||
     text.includes("xác nhận") ||
     text.includes("confirm") ||
     text.includes("gia hạn") ||
@@ -136,15 +157,19 @@ export async function demoRenewalReply(input: {
     text.includes("biển")
   ) {
     vehicle.incomplete = false;
-    session.caseStates[customerId] = "confirmed";
-    session.funnel.confirmed += 1;
+    // Repeating "confirm" (or confirming after issue) must not move the case or recount it.
+    const state = session.caseStates[customerId];
+    if (state !== "confirmed" && state !== "issued" && state !== "paid") {
+      session.caseStates[customerId] = "confirmed";
+      session.funnel.confirmed += 1;
+    }
     await save();
     return lang === "en"
-      ? `Confirmed vehicle **${vehicle.make} ${vehicle.model}**, plate **${vehicle.plate}**.\nTNDS expires ${policy.expiresAt.slice(0, 10)}.\nRegulated premium: **${formatVnd(premium)}**.\n\nReady to simulate payment via VietQR/MoMo? (type "pay")`
-      : `Em xác nhận xe **${vehicle.make} ${vehicle.model}**, biển **${vehicle.plate}**.\nTNDS hết hạn ${policy.expiresAt.slice(0, 10)}.\nPhí quy định: **${formatVnd(premium)}**.\n\nAnh/chị muốn thanh toán mô phỏng qua VietQR/MoMo không? (gõ "thanh toán")`;
+      ? `Confirmed vehicle **${vehicle.make} ${vehicle.model}**, plate **${vehicle.plate}**.\nTNDS expires ${formatDate(policy.expiresAt)}.\nRegulated premium: **${formatVnd(premium)}**.\n\nReady to simulate payment via VietQR/MoMo? (type "pay")`
+      : `Em xác nhận xe **${vehicle.make} ${vehicle.model}**, biển **${vehicle.plate}**.\nTNDS hết hạn ${formatDate(policy.expiresAt)}.\nPhí quy định: **${formatVnd(premium)}**.\n\nAnh/chị muốn thanh toán mô phỏng qua VietQR/MoMo không? (gõ "thanh toán")`;
   }
 
   return lang === "en"
-    ? `Hi ${customer.fullNameVi} 👋\nThis is a TNDS renewal reminder (synthetic data).\nVehicle: ${vehicle.make} ${vehicle.model} · Plate **${vehicle.plate}** · Expires ${policy.expiresAt.slice(0, 10)}.\n\nRegulated premium: **${formatVnd(premium)}** (no discount).\n\nYou can:\n• Type "confirm" to confirm the vehicle\n• Type "cover" for coverage details\n• Type "pay" to simulate payment\n• Type "human" for telesales`
-    : `Xin chào ${customer.fullNameVi} 👋\nĐây là nhắc gia hạn TNDS (dữ liệu synthetic).\nXe: ${vehicle.make} ${vehicle.model} · Biển **${vehicle.plate}** · Hết hạn ${policy.expiresAt.slice(0, 10)}.\n\nPhí quy định: **${formatVnd(premium)}** (không giảm giá).\n\nAnh/chị có thể:\n• Gõ "xác nhận" để xác nhận xe\n• Gõ "cover" để xem quyền lợi\n• Gõ "thanh toán" để mô phỏng thanh toán\n• Gõ "nhân viên" để gặp telesales`;
+    ? `Hi ${customer.fullNameVi} 👋\nThis is a TNDS renewal reminder (synthetic data).\nVehicle: ${vehicle.make} ${vehicle.model} · Plate **${vehicle.plate}** · Expires ${formatDate(policy.expiresAt)}.\n\nRegulated premium: **${formatVnd(premium)}** (no discount).\n\nYou can:\n• Type "confirm" to confirm the vehicle\n• Type "cover" for coverage details\n• Type "pay" to simulate payment\n• Type "human" for telesales`
+    : `Xin chào ${customer.fullNameVi} 👋\nĐây là nhắc gia hạn TNDS (dữ liệu synthetic).\nXe: ${vehicle.make} ${vehicle.model} · Biển **${vehicle.plate}** · Hết hạn ${formatDate(policy.expiresAt)}.\n\nPhí quy định: **${formatVnd(premium)}** (không giảm giá).\n\nAnh/chị có thể:\n• Gõ "xác nhận" để xác nhận xe\n• Gõ "cover" để xem quyền lợi\n• Gõ "thanh toán" để mô phỏng thanh toán\n• Gõ "nhân viên" để gặp telesales`;
 }

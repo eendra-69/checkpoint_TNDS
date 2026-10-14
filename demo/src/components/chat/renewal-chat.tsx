@@ -1,15 +1,20 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { formatVnd } from "@/lib/utils";
+import { ChatText } from "@/components/chat/chat-text";
+import { formatDate, formatVnd } from "@/lib/utils";
 import type { Locale } from "@/lib/i18n/locale";
+import { ChatRequestError, sendRenewalChat, type ChatTurn } from "@/lib/agent/chat-client";
 
-type Msg = { id: string; role: "assistant" | "user"; content: string };
+type Msg = ChatTurn;
 
 type ChatLabels = {
+  emptyReply: string;
+  errorPrefix: string;
+  networkError: string;
   classic: string;
   profileOk: string;
   needsConfirm: string;
@@ -47,11 +52,12 @@ export function RenewalChat({
   const [busy, setBusy] = useState(false);
   const [showPay, setShowPay] = useState(false);
   const [certificateId, setCertificateId] = useState(initialCertificateId);
+  const [needsConfirm, setNeedsConfirm] = useState(incomplete);
   const opener = useMemo(
     () =>
       locale === "vi"
-        ? `Xin chào ${customerName},\n\nTNDS xe biển ${plate} sẽ hết hạn vào ${expiresAt.slice(0, 10)}. Phí quy định: ${formatVnd(premiumVnd)} (không giảm giá).\n\nĐây là tin nhắn ZNS mô phỏng. Em có thể giúp xác nhận xe và gia hạn ngay trong chat.`
-        : `Hi ${customerName},\n\nTNDS for ${plate} expires on ${expiresAt.slice(0, 10)}. Regulated premium: ${formatVnd(premiumVnd)} (no discount).\n\nThis is a simulated Zalo ZNS. I can help confirm your vehicle and renew in chat.`,
+        ? `Xin chào ${customerName},\n\nTNDS xe biển ${plate} sẽ hết hạn vào ${formatDate(expiresAt)}. Phí quy định: ${formatVnd(premiumVnd)} (không giảm giá).\n\nĐây là tin nhắn ZNS mô phỏng. Em có thể giúp xác nhận xe và gia hạn ngay trong chat.`
+        : `Hi ${customerName},\n\nTNDS for ${plate} expires on ${formatDate(expiresAt)}. Regulated premium: ${formatVnd(premiumVnd)} (no discount).\n\nThis is a simulated Zalo ZNS. I can help confirm your vehicle and renew in chat.`,
     [locale, customerName, plate, expiresAt, premiumVnd],
   );
 
@@ -59,9 +65,13 @@ export function RenewalChat({
     { id: "zns", role: "assistant", content: opener },
   ]);
 
-  useEffect(() => {
+  // A new opener (language or customer changed) restarts the conversation. Adjusting state
+  // during render avoids an extra effect pass: https://react.dev/learn/you-might-not-need-an-effect
+  const [openerShown, setOpenerShown] = useState(opener);
+  if (openerShown !== opener) {
+    setOpenerShown(opener);
     setMessages([{ id: "zns", role: "assistant", content: opener }]);
-  }, [opener]);
+  }
 
   async function send(text: string) {
     if (!text.trim() || busy) return;
@@ -71,69 +81,35 @@ export function RenewalChat({
     setInput("");
     setBusy(true);
 
-    try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          customerId,
-          messages: next.map((m) => ({
-            id: m.id,
-            role: m.role,
-            parts: [{ type: "text", text: m.content }],
-          })),
-        }),
+    const replyId = crypto.randomUUID();
+    const setReply = (content: string) =>
+      setMessages((m) => {
+        const rest = m.filter((x) => x.id !== replyId);
+        return [...rest, { id: replyId, role: "assistant", content }];
       });
-      const data = await res.json();
-      if (data.demo && data.text) {
-        setMessages((m) => [
-          ...m,
-          { id: data.id || crypto.randomUUID(), role: "assistant", content: data.text },
-        ]);
-        if (String(data.text).includes("/verify/")) {
-          const match = String(data.text).match(/\/verify\/(CERT-[A-Z0-9]+)/);
-          if (match) setCertificateId(match[1]);
-        }
-        if (
-          text.toLowerCase().includes("thanh toán") ||
-          text.toLowerCase().includes("pay")
-        ) {
-          setShowPay(false);
-        }
-      } else if (data.error) {
-        setMessages((m) => [
-          ...m,
-          {
-            id: crypto.randomUUID(),
-            role: "assistant",
-            content: `Error: ${data.error}`,
-          },
-        ]);
-      } else {
-        setMessages((m) => [
-          ...m,
-          {
-            id: crypto.randomUUID(),
-            role: "assistant",
-            content:
-              locale === "vi"
-                ? "Em đã nhận tin. (Chế độ LLM streaming — thử lại hoặc dùng từ khoá: xác nhận / thanh toán / nhân viên)"
-                : "Got it. (LLM stream mode — try keywords: confirm / pay / human)",
-          },
-        ]);
+
+    try {
+      const reply = await sendRenewalChat({
+        customerId,
+        channel: "zalo",
+        turns: next,
+        onText: setReply,
+      });
+      if (!reply.text) setReply(labels.emptyReply);
+      if (reply.certificateId) setCertificateId(reply.certificateId);
+      if (reply.vehicleIncomplete !== undefined) setNeedsConfirm(reply.vehicleIncomplete);
+      if (
+        text.toLowerCase().includes("thanh toán") ||
+        text.toLowerCase().includes("pay")
+      ) {
+        setShowPay(false);
       }
-    } catch {
-      setMessages((m) => [
-        ...m,
-        {
-          id: crypto.randomUUID(),
-          role: "assistant",
-          content:
-            locale === "vi"
-              ? "Lỗi mạng — vui lòng thử lại."
-              : "Network error — please try again.",
-        },
-      ]);
+    } catch (err) {
+      setReply(
+        err instanceof ChatRequestError
+          ? `${labels.errorPrefix}: ${err.message}`
+          : labels.networkError,
+      );
     } finally {
       setBusy(false);
     }
@@ -173,7 +149,9 @@ export function RenewalChat({
                       : "mr-8 rounded-2xl rounded-bl-md bg-white px-3 py-2 text-sm text-tasco-ink shadow-sm"
                   }
                 >
-                  <div className="whitespace-pre-wrap">{m.content}</div>
+                  <div className="whitespace-pre-wrap">
+                    <ChatText text={m.content} />
+                  </div>
                 </div>
               ))}
             </div>
@@ -216,15 +194,15 @@ export function RenewalChat({
         <div className="rounded-2xl border bg-card p-5 shadow-sm">
           <div className="flex flex-wrap items-center gap-2">
             <Badge tone="sky">{labels.classic}</Badge>
-            <Badge>{incomplete ? labels.needsConfirm : labels.profileOk}</Badge>
+            <Badge>{needsConfirm ? labels.needsConfirm : labels.profileOk}</Badge>
           </div>
           <h2 className="mt-3 font-display text-lg font-semibold text-tasco-ink">
             {customerName} · {plate}
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
             {locale === "vi"
-              ? `Phí quy định ${formatVnd(premiumVnd)}. Hết hạn ${expiresAt.slice(0, 10)}.`
-              : `Regulated premium ${formatVnd(premiumVnd)}. Expires ${expiresAt.slice(0, 10)}.`}
+              ? `Phí quy định ${formatVnd(premiumVnd)}. Hết hạn ${formatDate(expiresAt)}.`
+              : `Regulated premium ${formatVnd(premiumVnd)}. Expires ${formatDate(expiresAt)}.`}
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             <Button type="button" variant="secondary" onClick={() => setShowPay(true)}>

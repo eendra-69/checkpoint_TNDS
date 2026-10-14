@@ -3,17 +3,18 @@ import { z } from "zod";
 import { nanoid } from "nanoid";
 import { COVERAGE_EXPLAIN, getRegulatedPremium } from "../pricing";
 import { appendAudit } from "../audit";
-import { canTransition } from "../workflow/renewal";
-import type { DemoSession, PersonaId } from "../types";
+import { canTransition, currentCertificate } from "../workflow/renewal";
+import type { Channel, DemoSession, PersonaId } from "../types";
 import { formatVnd } from "../utils";
 
 export function createRenewalTools(input: {
   session: DemoSession;
   customerId: string;
   persona: PersonaId;
+  channel: Channel;
   save: () => Promise<void>;
 }) {
-  const { session, customerId, persona, save } = input;
+  const { session, customerId, persona, channel, save } = input;
 
   return {
     lookupPolicy: tool({
@@ -37,6 +38,7 @@ export function createRenewalTools(input: {
           customerId,
           action: "tool.lookupPolicy",
           detail: `Plate ${vehicle.plate}`,
+          params: { plate: vehicle.plate },
         });
         await save();
         return {
@@ -92,6 +94,7 @@ export function createRenewalTools(input: {
           customerId,
           action: "tool.confirmVehicle",
           detail: `Confirmed ${vehicle.plate}`,
+          params: { plate: vehicle.plate },
         });
         await save();
         return { ok: true, plate: vehicle.plate, incomplete: false };
@@ -148,6 +151,7 @@ export function createRenewalTools(input: {
           customerId,
           action: "tool.createCheckout",
           detail: `Checkout ${checkoutId} for ${formatVnd(premium)}`,
+          params: { checkout: checkoutId, amount: formatVnd(premium) },
         });
         await save();
         return {
@@ -246,6 +250,16 @@ export function createRenewalTools(input: {
         if (vehicle.incomplete) {
           return { ok: false, error: "Vehicle details incomplete — confirm first" };
         }
+        // Checked before consuming the checkout, so a refused issue doesn't burn it.
+        const existing = currentCertificate(session, customerId);
+        if (existing) {
+          return {
+            ok: false,
+            error: "Policy already renewed — do not issue again",
+            certificateId: existing.id,
+            verifyPath: `/verify/${existing.id}`,
+          };
+        }
 
         checkout.status = "consumed";
         checkout.consumedAt = new Date().toISOString();
@@ -278,6 +292,7 @@ export function createRenewalTools(input: {
           customerId,
           action: "tool.issueCertificate",
           detail: `Issued ${certId} after ${checkoutId}`,
+          params: { cert: certId, checkout: checkoutId },
         });
         await save();
         return {
@@ -295,9 +310,10 @@ export function createRenewalTools(input: {
       inputSchema: z.object({
         summary: z.string(),
         reason: z.string(),
-        channel: z.enum(["zalo", "vetc", "voice", "telesales"]).default("zalo"),
       }),
-      execute: async ({ summary, reason, channel }) => {
+      // The channel comes from the request (where the customer is actually chatting),
+      // not from the model, so a handover can't be mislabelled.
+      execute: async ({ summary, reason }) => {
         const id = `ho_${nanoid(8)}`;
         session.handovers.unshift({
           id,

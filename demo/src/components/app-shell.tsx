@@ -67,7 +67,7 @@ export async function AppShell({
       <ShellFrame
         items={items}
         brand={{ name: "TASCO", tagline: "Renewal Journey Demo" }}
-        personaLabel={auth ? PERSONA_LABEL[auth.persona] : undefined}
+        personaLabel={auth ? dict.personas[auth.persona].label : undefined}
         profile={
           auth ? (
             <DisplayNameEditor
@@ -84,7 +84,11 @@ export async function AppShell({
         actions={
           <>
             {auth ? (
-              <PersonaPill auth={auth} labels={dict.personaPill} />
+              <PersonaPill
+                auth={auth}
+                labels={dict.personaPill}
+                personaLabel={dict.personas[auth.persona].label}
+              />
             ) : (
               <a
                 href="/login"
@@ -102,12 +106,3 @@ export async function AppShell({
     </OnboardingHost>
   );
 }
-
-const PERSONA_LABEL: Record<string, string> = {
-  customer: "Customer",
-  telesales: "Telesales",
-  campaign_manager: "Campaign manager",
-  compliance: "Compliance",
-  executive: "Executive",
-  admin: "Admin",
-};

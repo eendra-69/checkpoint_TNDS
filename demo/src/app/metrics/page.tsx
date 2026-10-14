@@ -4,20 +4,23 @@ import { requirePermission } from "@/lib/auth";
 import { getOrCreateSession } from "@/lib/session";
 import { getLocale } from "@/lib/i18n/locale";
 import { getDictionary } from "@/lib/i18n/dictionaries";
+import { format } from "@/lib/i18n/t";
 
 export default async function MetricsPage() {
   const auth = await requirePermission("metrics:view");
   const session = await getOrCreateSession(auth.sessionId);
-  const dict = getDictionary(await getLocale());
+  const locale = await getLocale();
+  const dict = getDictionary(locale);
   const f = session.funnel;
+  const t = dict.metricsBody;
 
   const cards = [
-    { label: "Reminded", value: f.reminded },
-    { label: "Engaged", value: f.engaged },
-    { label: "Confirmed", value: f.confirmed },
-    { label: "Paid", value: f.paid },
-    { label: "Issued", value: f.issued },
-    { label: "Handed over", value: f.handedOver },
+    { label: t.reminded, value: f.reminded },
+    { label: t.engaged, value: f.engaged },
+    { label: t.confirmed, value: f.confirmed },
+    { label: t.paid, value: f.paid },
+    { label: t.issued, value: f.issued },
+    { label: t.handedOver, value: f.handedOver },
   ];
 
   const baseline = 0.28;
@@ -47,29 +50,31 @@ export default async function MetricsPage() {
 
       <div className="mt-6 grid gap-4 lg:grid-cols-2">
         <section className="rounded-2xl border bg-card p-5 shadow-sm">
-          <Badge tone="sky">Headline: renewal-rate uplift</Badge>
+          <Badge tone="sky">{t.headline}</Badge>
           <h2 className="mt-3 text-lg font-semibold text-tasco-ink">
-            Assumed impact
+            {t.assumedImpact}
           </h2>
           <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-            <li>Baseline voluntary renewal (assumed): {(baseline * 100).toFixed(0)}%</li>
-            <li>Target with timely reminders + chat: {(target * 100).toFixed(0)}%</li>
-            <li>Uplift claimed for pitch: +{(assumedUplift * 100).toFixed(0)} pp</li>
-            <li>Supporting metric: ~{minutesSaved} telesales minutes saved per bot-handled renewal</li>
+            <li>{format(t.baseline, { n: (baseline * 100).toFixed(0) })}</li>
+            <li>{format(t.target, { n: (target * 100).toFixed(0) })}</li>
+            <li>{format(t.uplift, { n: (assumedUplift * 100).toFixed(0) })}</li>
+            <li>{format(t.minutesSaved, {
+              n: minutesSaved.toLocaleString(locale === "vi" ? "vi-VN" : "en-GB"),
+            })}</li>
           </ul>
           <p className="mt-4 text-xs text-muted-foreground">
-            Baselines are labelled assumptions until Tasco shares channel metrics in pilot scoping.
+            {t.baselineNote}
           </p>
         </section>
         <section className="rounded-2xl border bg-card p-5 shadow-sm">
-          <Badge>Cost per renewal (illustrative)</Badge>
+          <Badge>{t.costBadge}</Badge>
           <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-            <li>LLM chat turn: ~$0.002–0.01 (Flash / mini class)</li>
-            <li>Web Speech voice: $0 · ElevenLabs: per-character TTS</li>
-            <li>No discount budget — experience-only acquisition</li>
+            <li>{t.llmCost}</li>
+            <li>{t.voiceCost}</li>
+            <li>{t.noDiscount}</li>
           </ul>
           <div className="mt-4 rounded-xl bg-tasco-mist/60 p-3 text-sm">
-            Outcomes logged this session:{" "}
+            {t.outcomesLogged}{" "}
             <strong>{session.outcomes.length}</strong>
           </div>
         </section>

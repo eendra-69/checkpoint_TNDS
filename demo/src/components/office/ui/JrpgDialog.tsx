@@ -16,21 +16,25 @@ export function JrpgDialog({
   onDone?: () => void;
   children?: React.ReactNode;
 }) {
-  const [shown, setShown] = useState("");
-  const [ready, setReady] = useState(false);
+  // Typewriter progress is tied to the intro it belongs to, so a new intro starts at 0
+  // without resetting state in an effect.
+  const [progress, setProgress] = useState({ intro, chars: 0 });
+  const chars = progress.intro === intro ? progress.chars : 0;
+  const shown = intro.slice(0, chars);
+  const ready = chars >= intro.length;
+
   const doneRef = useRef(onDone);
-  doneRef.current = onDone;
+  useEffect(() => {
+    doneRef.current = onDone;
+  });
 
   useEffect(() => {
-    setShown("");
-    setReady(false);
     let i = 0;
     const id = window.setInterval(() => {
       i += 1;
-      setShown(intro.slice(0, i));
+      setProgress({ intro, chars: i });
       if (i >= intro.length) {
         window.clearInterval(id);
-        setReady(true);
         doneRef.current?.();
       }
     }, 16);

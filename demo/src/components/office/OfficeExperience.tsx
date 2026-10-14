@@ -189,6 +189,7 @@ export function OfficeExperience({
                   claims={claims}
                   consent={consent}
                   certificateId={certificateId}
+                  locale={locale}
                   onClose={() => setActive(null)}
                   onOpenClaims={() => {
                     setIntroDone(false);

@@ -3,51 +3,31 @@
 import { usePathname } from "next/navigation";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-
-const SUGGESTIONS: Record<string, string[]> = {
-  "/": [
-    "What should I try first?",
-    "Which persona is best for Demo Day?",
-    "Summarise the renewal story",
-  ],
-  "/ops": [
-    "Why is Minh scored high?",
-    "How does consent filtering work?",
-    "What happens when I run a campaign?",
-  ],
-  "/agent": [
-    "Summarise my queue",
-    "Which case is most urgent?",
-    "How do I send a renewal link?",
-  ],
-  "/compliance": [
-    "Show recent PII reveals",
-    "Who opted out of calls?",
-    "What is audited?",
-  ],
-  "/metrics": [
-    "Explain the uplift assumption",
-    "What is cost per renewal?",
-    "How is the funnel counted?",
-  ],
-  "/admin": [
-    "Can I use Ollama here?",
-    "How do permission overrides work?",
-    "Where do API keys live?",
-  ],
-  "/admin/workflow": [
-    "What if a customer doesn't respond?",
-    "Who can see national ID?",
-    "Explain the issued state",
-  ],
-};
+import type { Locale } from "@/lib/i18n/locale";
+import { format } from "@/lib/i18n/t";
+import { suggestionsFor, type AssistantTopic } from "@/lib/assistant-topics";
 
 export function FloatingAssistant({
   enabled,
   badgeCount = 0,
+  guest = false,
+  locale = "vi",
+  labels,
 }: {
   enabled: boolean;
   badgeCount?: number;
+  /** Signed out: the API only answers the "where to start" topic, so always offer home chips. */
+  guest?: boolean;
+  locale?: Locale;
+  labels: {
+    title: string;
+    context: string;
+    empty: string;
+    placeholder: string;
+    send: string;
+    noReply: string;
+    unavailable: string;
+  };
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -55,19 +35,17 @@ export function FloatingAssistant({
   const [messages, setMessages] = useState<{ role: "user" | "assistant"; text: string }[]>([]);
   const [busy, setBusy] = useState(false);
 
-  const suggestions = useMemo(() => {
-    const key = Object.keys(SUGGESTIONS).find(
-      (k) => pathname === k || pathname.startsWith(`${k}/`),
-    );
-    return SUGGESTIONS[key || "/"] || SUGGESTIONS["/"];
-  }, [pathname]);
+  const suggestions = useMemo(
+    () => suggestionsFor(guest ? "/" : pathname, locale),
+    [guest, pathname, locale],
+  );
 
   if (!enabled) return null;
   if (pathname.startsWith("/chat") || pathname.startsWith("/call") || pathname.startsWith("/vetc")) {
     return null;
   }
 
-  async function ask(text: string) {
+  async function ask(text: string, topic?: AssistantTopic) {
     setMessages((m) => [...m, { role: "user", text }]);
     setBusy(true);
     setInput("");
@@ -75,17 +53,17 @@ export function FloatingAssistant({
       const res = await fetch("/api/assistant", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text, pathname }),
+        body: JSON.stringify({ message: text, pathname, topic }),
       });
       const data = await res.json();
       setMessages((m) => [
         ...m,
-        { role: "assistant", text: data.text || data.error || "No reply" },
+        { role: "assistant", text: data.text || data.error || labels.noReply },
       ]);
     } catch {
       setMessages((m) => [
         ...m,
-        { role: "assistant", text: "Assistant unavailable — try again." },
+        { role: "assistant", text: labels.unavailable },
       ]);
     } finally {
       setBusy(false);
@@ -99,27 +77,27 @@ export function FloatingAssistant({
         // a narrow phone — a bare fixed width overflows below ~360px viewports.
         <div className="flex h-[min(420px,60vh)] w-[min(340px,calc(100vw-2.5rem))] flex-col overflow-hidden rounded-2xl border bg-white shadow-2xl">
           <div className="hero-gradient px-4 py-3 text-white">
-            <div className="text-sm font-semibold">Tasco assistant</div>
+            <div className="text-sm font-semibold">{labels.title}</div>
             <div className="text-[11px] text-white/70">
-              Context: {pathname} · RBAC-scoped
+              {format(labels.context, { path: pathname })}
             </div>
           </div>
           <div className="flex flex-wrap gap-1 border-b p-2">
             {suggestions.map((s) => (
               <button
-                key={s}
+                key={s.text}
                 type="button"
-                onClick={() => ask(s)}
+                onClick={() => ask(s.text, s.topic)}
                 className="rounded-full bg-tasco-mist px-2 py-1 text-[10px] font-medium text-tasco-forest"
               >
-                {s}
+                {s.text}
               </button>
             ))}
           </div>
           <div className="flex-1 space-y-2 overflow-y-auto p-3 text-sm">
             {messages.length === 0 && (
               <p className="text-muted-foreground">
-                Ask about this page. I never see more than your persona allows.
+                {labels.empty}
               </p>
             )}
             {messages.map((m, i) => (
@@ -146,10 +124,10 @@ export function FloatingAssistant({
               value={input}
               onChange={(e) => setInput(e.target.value)}
               className="h-9 flex-1 rounded-lg border px-2 text-sm"
-              placeholder="Ask…"
+              placeholder={labels.placeholder}
             />
             <Button type="submit" size="sm" disabled={busy}>
-              Send
+              {labels.send}
             </Button>
           </form>
         </div>

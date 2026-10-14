@@ -4,7 +4,12 @@ import { clearAudit, appendAudit } from "./audit";
 import { withSessionLock } from "./session-lock";
 import type { DemoSession } from "./types";
 
-const memory = new Map<string, DemoSession>();
+// One Map per process. Route handlers and pages can load separate copies of this
+// module, so a module-level Map would hide /api/chat writes from pages.
+const globalStore = globalThis as typeof globalThis & {
+  __tascoDemoSessions?: Map<string, DemoSession>;
+};
+const memory = (globalStore.__tascoDemoSessions ??= new Map<string, DemoSession>());
 
 function redisConfigured() {
   return Boolean(
@@ -43,8 +48,9 @@ export async function getSession(sessionId: string): Promise<DemoSession | null>
     const data = await redis.get<DemoSession>(key(sessionId));
     return data ? normalizeSession(data) : null;
   }
+  // Copy in and out like Redis serialization, so callers can't mutate stored state by reference.
   const mem = memory.get(sessionId);
-  return mem ? normalizeSession(mem) : null;
+  return mem ? normalizeSession(structuredClone(mem)) : null;
 }
 
 export async function saveSession(session: DemoSession): Promise<void> {
@@ -53,7 +59,7 @@ export async function saveSession(session: DemoSession): Promise<void> {
     await redis.set(key(session.id), session, { ex: 60 * 60 * 24 * 7 });
     return;
   }
-  memory.set(session.id, session);
+  memory.set(session.id, structuredClone(session));
 }
 
 export async function getOrCreateSession(sessionId?: string): Promise<DemoSession> {
@@ -70,6 +76,7 @@ export async function getOrCreateSession(sessionId?: string): Promise<DemoSessio
     persona: "admin",
     action: "session.seeded",
     detail: `Seeded ${seeded.customers.length} synthetic car owners`,
+    params: { n: seeded.customers.length },
   });
   return seeded;
 }

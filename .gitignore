@@ -42,3 +42,8 @@ next-env.d.ts
 # intermediates in out/ are duplicates of demo/public/worlds/raw/, which is
 # the directory the asset pipeline actually reads.
 .mcode/out/
+
+# playwright (unanchored so they also cover demo/)
+test-results/
+playwright-report/
+blob-report/

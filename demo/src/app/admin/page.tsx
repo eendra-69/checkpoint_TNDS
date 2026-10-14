@@ -29,6 +29,7 @@ export default async function AdminPage() {
   const localDisabled = localProvidersDisabled();
   const settings = session.settings;
   const dict = getDictionary(await getLocale());
+  const t = dict.adminBody;
 
   return (
     <AppShell
@@ -41,7 +42,7 @@ export default async function AdminPage() {
           Secrets: {encryptionAvailable() ? "encrypted at rest" : "NOT encrypted (no SETTINGS_SECRET)"}
         </Badge>
         <Badge tone={usingMemoryStore() ? "warn" : "green"}>
-          Store: {usingMemoryStore() ? "in-memory" : "Upstash Redis"}
+          {t.store}: {usingMemoryStore() ? t.inMemory : "Upstash Redis"}
         </Badge>
         <Badge tone={usingMemoryPresence() ? "warn" : "green"}>
           Presence: {usingMemoryPresence() ? "in-memory (single instance)" : "Upstash Redis"}
@@ -50,15 +51,15 @@ export default async function AdminPage() {
           Audit: {usingMemoryAudit() ? "in-memory (not tamper-evident)" : "append-only Redis"}
         </Badge>
         <Link href="/admin/workflow">
-          <Badge tone="sky">Open workflow visualizer →</Badge>
+          <Badge tone="sky">{t.openWorkflow}</Badge>
         </Link>
       </div>
 
       <section className="rounded-2xl border bg-card p-5 shadow-sm">
-        <h2 className="text-lg font-semibold text-tasco-ink">AI providers</h2>
+        <h2 className="text-lg font-semibold text-tasco-ink">{t.providersTitle}</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Cloud works on the live demo. Local / on-prem options are visible
-          {localDisabled ? " but disabled on Vercel" : " and available on this host"}.
+          {t.providersCloud}{" "}
+          {localDisabled ? t.providersLocalDisabled : t.providersLocalEnabled}
         </p>
         <div className="mt-4 grid gap-3 md:grid-cols-2">
           {PROVIDERS.map((p) => {
@@ -82,12 +83,12 @@ export default async function AdminPage() {
                   <div className="font-semibold">{p.label}</div>
                   <Badge tone={p.kind === "cloud" ? "sky" : "muted"}>{p.kind}</Badge>
                   {settings.defaultProvider === p.id && (
-                    <Badge tone="green">active</Badge>
+                    <Badge tone="green">{t.active}</Badge>
                   )}
                 </div>
                 {disabled && (
                   <p className="mt-1 text-xs text-amber-800">
-                    Available in self-hosted / on-prem deployment
+                    {t.onPremOnly}
                   </p>
                 )}
                 {p.needsKey && (
@@ -95,7 +96,7 @@ export default async function AdminPage() {
                     name="key"
                     type="password"
                     placeholder={
-                      secretPreview(settings.providerKeys[p.id]) ?? "API key"
+                      secretPreview(settings.providerKeys[p.id]) ?? t.apiKey
                     }
                     disabled={disabled}
                     className="mt-3 h-9 w-full rounded-lg border px-2 text-sm"
@@ -122,7 +123,7 @@ export default async function AdminPage() {
                   className="mt-2 h-9 w-full rounded-lg border px-2 text-sm"
                 />
                 <Button type="submit" size="sm" className="mt-3" disabled={disabled}>
-                  Use this provider
+                  {t.useProvider}
                 </Button>
               </form>
             );
@@ -141,9 +142,9 @@ export default async function AdminPage() {
             });
           }}
         >
-          <h3 className="font-semibold text-tasco-ink">ElevenLabs (optional)</h3>
+          <h3 className="font-semibold text-tasco-ink">{t.elevenTitle}</h3>
           <p className="text-xs text-muted-foreground">
-            Falls back to free Web Speech when empty.
+            {t.elevenBody}
           </p>
           <div className="mt-2 grid gap-2 sm:grid-cols-2">
             <input
@@ -157,12 +158,12 @@ export default async function AdminPage() {
             <input
               name="voiceId"
               defaultValue={settings.elevenLabsVoiceId || ""}
-              placeholder="Voice ID"
+              placeholder={t.voiceId}
               className="h-9 rounded-lg border px-2 text-sm"
             />
           </div>
           <Button type="submit" size="sm" className="mt-3" variant="secondary">
-            Save voice settings
+            {t.saveVoice}
           </Button>
         </form>
       </section>
@@ -173,19 +174,19 @@ export default async function AdminPage() {
 
       <section className="mt-6 rounded-2xl border bg-card p-5 shadow-sm">
         <h2 className="text-lg font-semibold text-tasco-ink">
-          Permission matrix
+          {t.matrixTitle}
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Edits apply only to this demo session. Reset demo restores defaults.
+          {t.matrixBody}
         </p>
         <div className="mt-4 overflow-x-auto">
           <table className="min-w-full text-left text-xs">
             <thead>
               <tr className="border-b">
-                <th className="p-2">Permission</th>
+                <th className="p-2">{t.permission}</th>
                 {(Object.keys(PERSONAS) as PersonaId[]).map((pid) => (
                   <th key={pid} className="p-2 font-medium">
-                    {PERSONAS[pid].label}
+                    {dict.personas[pid].label}
                   </th>
                 ))}
               </tr>

@@ -45,8 +45,8 @@ function PropSprite({
 }
 
 export function OfficeProps() {
+  // PropSprite configures (incl. colour space) its own clone of the shared atlas.
   const atlas = useTexture("/office/props.png");
-  atlas.colorSpace = THREE.SRGBColorSpace;
 
   const csPlate = useMemo(() => createNameplateTexture("Tasco CS", TASCO_3D.sky), []);
   const claimsPlate = useMemo(

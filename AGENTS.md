@@ -14,7 +14,7 @@ Read this file before changing code. Full human/agent docs live in [`docs/`](./d
 
 ## What this repo is
 
-A **pitch demo** of AI-assisted TNDS renewal for BeyondPilot × Tasco. Not a production insurer system. Git root is this `app/` directory.
+A **pitch demo** of AI-assisted TNDS renewal for BeyondPilot × Tasco. Not a production insurer system. The repository root is the Next.js app (`package.json` lives here).
 
 Two halves live here:
 

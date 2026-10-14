@@ -70,7 +70,10 @@ export type CaseState =
   | "opted_out"
   | "expired";
 
-export type Channel = "zalo" | "vetc" | "voice" | "telesales";
+export type Channel = "zalo" | "vetc" | "voice" | "telesales" | "office";
+
+/** Channels a customer can chat from (sent by the client to `/api/chat`). */
+export const CHAT_CHANNELS = ["zalo", "vetc", "voice", "office"] as const satisfies readonly Channel[];
 
 export type ConsentFlags = {
   messaging: boolean;
@@ -122,12 +125,32 @@ export type VetcActivity = {
   appActive: boolean;
 };
 
+/** Score reason as a code + number; rendered per locale by `describeReason`. */
+export type ScoreReason =
+  | { code: "expires_urgent" | "expires_ideal" | "expires_early" | "expired"; days: number }
+  | { code: "vetc_active" | "vetc_moderate"; trips: number }
+  | {
+      code:
+        | "previously_renewed"
+        | "zalo_consent"
+        | "call_consent_only"
+        | "profile_complete"
+        | "profile_incomplete";
+    };
+
+export type NextActionCode = "zalo_confirm" | "zalo_reminder" | "voice_outreach" | "vetc_banner";
+export type SendWindow = "morning" | "evening" | "voice_morning" | "next_app_open";
+
 export type LeadScore = {
   customerId: string;
   score: number;
-  reasons: string[];
+  /** Older sessions (e.g. still in Redis) may hold English strings. */
+  reasons: (ScoreReason | string)[];
   nextBestAction: {
     channel: Channel;
+    /** Codes rendered per locale; `label` / `sendAtHint` are the English originals. */
+    action?: NextActionCode;
+    window?: SendWindow;
     sendAtHint: string;
     label: string;
   };
@@ -155,6 +178,8 @@ export type Handover = {
   fromChannel: Channel;
   summary: string;
   reason: string;
+  /** Set for demo-agent handovers so summary/reason render per locale; LLM handovers keep free text. */
+  template?: { kind: "requested_human"; customerName: string; plate: string; expiresAt: string };
   status: "queued" | "in_progress" | "resolved";
   createdAt: string;
   assignedTo?: string;
@@ -182,6 +207,8 @@ export type AuditEvent = {
   customerId?: string;
   action: string;
   detail: string;
+  /** Values for the localized detail template of `action` (see `describeAudit`). */
+  params?: Record<string, string | number>;
   reason?: string;
 };
 
@@ -229,6 +256,8 @@ export type ClaimTimelineEntry = {
   note: string;
 };
 
+export type TriageCode = "glass" | "bumper" | "exterior";
+
 export type Claim = {
   id: string;
   customerId: string;
@@ -236,6 +265,8 @@ export type Claim = {
   photos: string[];
   note: string;
   triageNote?: string;
+  /** Code behind `triageNote`, rendered per locale. */
+  triageCode?: TriageCode;
   createdAt: string;
   updatedAt: string;
   timeline: ClaimTimelineEntry[];

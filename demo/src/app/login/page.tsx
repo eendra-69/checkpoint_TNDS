@@ -10,25 +10,6 @@ import type { PersonaId } from "@/lib/types";
 import { getLocale } from "@/lib/i18n/locale";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 
-const CUSTOMERS: CustomerOption[] = [
-  {
-    key: "minh",
-    label: "Anh Minh",
-    blurb: "Happy-path · Virtual Office · high score · VETC active",
-  },
-  {
-    key: "lan",
-    label: "Chị Lan",
-    blurb: "Ignores reminder · voice call · handover",
-    path: `/call/${getDemoCustomerId("lan")}`,
-  },
-  {
-    key: "tuan",
-    label: "Anh Tuấn",
-    blurb: "Incomplete vehicle data · confirm in chat",
-  },
-];
-
 const STAFF_IMG: Partial<Record<PersonaId, string>> = {
   campaign_manager: "/brand/persona-ops.jpg",
   telesales: "/brand/persona-voice.jpg",
@@ -46,12 +27,29 @@ export default async function LoginPage({
   const locale = await getLocale();
   const dict = getDictionary(locale);
 
+  const customers: CustomerOption[] = [
+    { key: "minh", label: "Anh Minh", blurb: dict.demoCustomers.minh },
+    {
+      key: "lan",
+      label: "Chị Lan",
+      blurb: dict.demoCustomers.lan,
+      path: `/call/${getDemoCustomerId("lan")}`,
+    },
+    // Tuấn's story is confirming incomplete vehicle data; Classic chat shows the "needs confirmation" badge.
+    {
+      key: "tuan",
+      label: "Anh Tuấn",
+      blurb: dict.demoCustomers.tuan,
+      path: `/chat/${getDemoCustomerId("tuan")}`,
+    },
+  ];
+
   const staff: StaffOption[] = (Object.keys(PERSONAS) as PersonaId[])
     .filter((id) => id !== "customer")
     .map((id) => ({
       id,
-      label: PERSONAS[id].label,
-      description: PERSONAS[id].description,
+      label: dict.personas[id].label,
+      description: dict.personas[id].description,
       img: STAFF_IMG[id] || "/brand/persona-ops.jpg",
     }));
 
@@ -67,7 +65,7 @@ export default async function LoginPage({
 
         <div className="mt-8">
           <PersonaPicker
-            customers={CUSTOMERS}
+            customers={customers}
             staff={staff}
             next={next}
             continueLabel={dict.login.continue}

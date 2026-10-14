@@ -67,7 +67,7 @@ Then open <http://localhost:4321> and click through to the demo.
 5. **Admin** → `/admin` + `/admin/workflow`
 6. **Metrics / Compliance** → funnel + consent/audit
 
-Header **VI | EN** switches UI language. Customers also get **Classic | Virtual Office**.
+Header **VI | EN** switches UI language; **Tour** explains the page you are on. Customers move between Home, the Virtual Office and its renewal / claim processes from the sidebar.
 
 ## Stack
 
@@ -87,6 +87,8 @@ Run from the repository root; each one forwards into `demo/`.
 | `npm run typecheck` | `tsc --noEmit` over the demo |
 | `npm run assets` | Rebuild the 3D room sprite atlases |
 | `npm run setup` | `npm install` inside `demo/` |
+| `npm run test:e2e` | Playwright end-to-end tests (`demo/e2e/`) for every role's scenario; reuses a dev server on `E2E_PORT` (default 3457) or starts one |
+| `npm run test:e2e:report` | Open the last Playwright HTML report |
 
 ## Deploying
 

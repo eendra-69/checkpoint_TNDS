@@ -44,7 +44,11 @@ export async function MarketingShell({
                 shell. `justify-end` keeps it right-aligned when this wraps. */}
             <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
               {auth ? (
-                <PersonaPill auth={auth} labels={dict.personaPill} />
+                <PersonaPill
+                  auth={auth}
+                  labels={dict.personaPill}
+                  personaLabel={dict.personas[auth.persona].label}
+                />
               ) : (
                 <Link
                   href="/login"

@@ -10,6 +10,7 @@ import { demoRenewalReply } from "@/lib/agent/demo-reply";
 import { appendAudit } from "@/lib/audit";
 import { nanoid } from "nanoid";
 import { getLocale } from "@/lib/i18n/locale";
+import { CHAT_CHANNELS, type Channel } from "@/lib/types";
 
 export const maxDuration = 60;
 
@@ -46,6 +47,7 @@ export async function POST(req: Request) {
   const body = await req.json();
   const customerId = body.customerId as string;
   const messages = (body.messages || []) as UIMessage[];
+  const channel: Channel = CHAT_CHANNELS.includes(body.channel) ? body.channel : "zalo";
 
   const customer = session.customers.find((c) => c.id === customerId);
   if (!customer) {
@@ -90,17 +92,19 @@ export async function POST(req: Request) {
       customerId,
       userText: lastText || "hello",
       persona: auth.persona,
+      channel,
       save: async () => {
         await saveSession(session);
       },
     });
 
-    // Demo mode has no model, so a plain JSON payload is simpler for the
-    // client than hand-rolling an SSE stream.
+    // Demo mode replies with JSON; LLM mode below streams. `sendRenewalChat` reads both.
+    const vehicle = session.vehicles.find((v) => v.customerId === customerId);
     return Response.json({
       demo: true,
       text: reply,
       id: nanoid(),
+      vehicleIncomplete: Boolean(vehicle?.incomplete),
     });
   }
 
@@ -109,6 +113,7 @@ export async function POST(req: Request) {
     session,
     customerId,
     persona: auth.persona,
+    channel,
     save: async () => {
       await saveSession(session);
     },

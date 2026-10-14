@@ -2,7 +2,6 @@ import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { getAuth } from "@/lib/auth";
-import { PERSONAS } from "@/lib/rbac";
 import { getLocale } from "@/lib/i18n/locale";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 
@@ -15,7 +14,7 @@ export default async function ForbiddenPage({
   const auth = await getAuth();
   const locale = await getLocale();
   const dict = getDictionary(locale);
-  const label = auth ? PERSONAS[auth.persona].label : locale === "vi" ? "vai trò của bạn" : "your role";
+  const label = auth ? dict.personas[auth.persona].label : locale === "vi" ? "vai trò của bạn" : "your role";
 
   return (
     <AppShell title={dict.forbidden.title}>

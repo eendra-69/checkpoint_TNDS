@@ -14,7 +14,8 @@ The app:
 - Six-persona RBAC demo with scoring, Zalo chat, VETC, voice, telesales, compliance, metrics, admin LLM matrix, workflow visualizer.
 - Tasco branding is **lime-forward** (`--tasco-forest` / `--tasco-lime`), not navy/sky. `zalo-blue` and `vetc-green` stay third-party on purpose. Palette lives in `demo/src/app/globals.css`.
 - Per-persona welcome screen at `/` — the landing route is persona-aware, not a marketing splash.
-- Three HD-2D worlds: `/office` (with Classic | Office switch and first-run onboarding tour), `/workshop`, `/lounge`. Every world is walkable and fully reachable — verified tile-by-tile.
+- Three HD-2D worlds: `/office`, `/workshop`, `/lounge`. Every world is walkable and fully reachable — verified tile-by-tile.
+- Header **Tour** explains the page you are on (`demo/src/lib/page-tours.ts`); the welcome screen is the first-visit introduction.
 - Floating pitch assistant; app-wide **VI | EN** (`tasco-locale`), agent `preferredLanguage` synced on chat.
 - Claims desk is in-office demo only.
 - Production: https://tasco-tnds-demo.vercel.app (Vercel root directory must be `demo`).
@@ -37,25 +38,17 @@ Full change history: [../CHANGELOG.md](../CHANGELOG.md).
 
 These are real; do not “fix” them by deleting the demo path.
 
-1. **LLM streaming UI.** With API keys, `streamText` returns a UI stream; Classic chat / CsPanel primarily parse demo JSON. Wiring `useChat` / stream rendering is unfinished.
-2. **Edge vs session RBAC.** `proxy.ts` uses `DEFAULT_PERMISSIONS` only. Admin overrides apply on the server after the request is allowed through. Either document this in the pitch or load overrides in proxy (needs a store read).
-3. **In-memory sessions on Vercel** without Upstash: funnel/chat state can vanish between lambdas. Prefer Redis for any judged demo.
+1. **In-memory sessions** without Upstash: funnel/chat state can vanish between lambdas on Vercel. Locally the memory store (and the audit ledger fallback) is one process-wide `Map` on `globalThis`, and sessions are copied on save/load like Redis does. Prefer Redis for any judged demo.
+2. **Free text stays as written.** Runtime data is stored as codes + params and rendered per locale (`demo/src/lib/i18n/generated.ts`, `demo/src/lib/workflow/i18n.ts`). What cannot be translated: customer chat text, LLM-written handover summaries/reasons, and events saved before codes existed (they fall back to their stored English).
+3. **Assistant** (`/api/assistant`) is scripted VI/EN answers by topic/keyword (`demo/src/lib/assistant-topics.ts`), not the renewal LLM.
 4. **Git author vs Vercel.** Prebuilt deploy without `.git` — [DEPLOY.md](./DEPLOY.md).
-5. **Staff page bodies** are still mostly English even when titles are translated.
-6. **AdminPanel** office board is lightly localized compared to CS/Claims.
-7. **Persona labels** on `/login` (`PERSONAS[].label`) are English.
-8. **Voice copy** (`VoiceCall`) is not fully dictionary-driven.
-9. **Assistant** (`/api/assistant`) is keyword English scripts, not the renewal LLM.
-10. **Dictionary type:** keep `vi` and `en` the same **shape**. `DeepStringify` only relaxes string literals.
-11. **12 pre-existing `react-hooks` lint errors** in the demo. Pre-date v0.2.0; the build is green, so treat them as a separate cleanup, not a regression.
-12. **Office follow-camera** can frame the room's south edge and the void beyond it. Cosmetic only.
-13. **Style mismatch:** the workshop/lounge mechanic NPC is smooth 3D-clay while the office NPCs are pixel art. Deliberate-looking but not yet reconciled.
-14. **Presentation site is English-only** while the demo defaults to VI. No localization pass yet.
+5. **Dictionary type:** keep `vi` and `en` the same **shape**. `DeepStringify` only relaxes string literals.
+6. **Office follow-camera** can frame the room's south edge and the void beyond it. Cosmetic only.
+7. **Style mismatch:** the workshop/lounge mechanic NPC is smooth 3D-clay while the office NPCs are pixel art. Deliberate-looking but not yet reconciled.
+8. **Presentation site is English-only** while the demo defaults to VI. No localization pass yet.
 
 ## Suggested next work (if the human asks)
 
-- Finish streaming chat for LLM mode without breaking demo JSON.
-- Translate remaining staff tables/buttons.
 - Connect Upstash on the production project if not already.
 - Add the commit author email to the Vercel team so Git deploys work.
 - Persist office onboarding in the session if judges need a shared machine.
@@ -66,8 +59,9 @@ These are real; do not “fix” them by deleting the demo path.
 1. `npm run setup` once, then `npm run dev` from the repo root (it forwards into `demo/`). Add `npm run site` in a second terminal when you need to see the presentation site or the `/demo/` redirect.
 2. Sign in as the persona that owns the surface.
 3. Toggle VI and EN.
-4. `npm run typecheck && npm run build` from the root — both forward into `demo/`.
-5. Commit only when asked. Deploy only when asked; follow [DEPLOY.md](./DEPLOY.md).
+4. `npm run lint`, `npm run typecheck` and `npm run build` from the root — all forward into `demo/`.
+5. `npm run test:e2e` — the role scenarios from [VERIFICATION.md](./VERIFICATION.md) (`demo/e2e/`). Uses installed Edge (`E2E_CHANNEL=chrome` for Chrome); no browser download. Port via `E2E_PORT` (default 3457, since 3000 can be reserved on Windows).
+6. Commit only when asked. Deploy only when asked; follow [DEPLOY.md](./DEPLOY.md).
 
 ## Demo customers (quick reference)
 

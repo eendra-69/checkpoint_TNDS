@@ -23,7 +23,12 @@ import type { AuditEvent, PersonaId } from "./types";
  */
 
 const RETENTION = 5000;
-const memoryLedger = new Map<string, AuditEvent[]>();
+// One ledger per process: route handlers and pages can load separate copies of this
+// module in dev, so a module-level Map would hide /api/chat events from pages.
+const globalLedger = globalThis as typeof globalThis & {
+  __tascoAuditLedger?: Map<string, AuditEvent[]>;
+};
+const memoryLedger = (globalLedger.__tascoAuditLedger ??= new Map<string, AuditEvent[]>());
 
 function redisConfigured() {
   return Boolean(
@@ -52,7 +57,9 @@ function seqKey(sessionId: string) {
 export type AuditInput = {
   persona: PersonaId;
   action: string;
+  /** English fallback; `params` drive the localized text (see `describeAudit`). */
   detail: string;
+  params?: Record<string, string | number>;
   customerId?: string;
   reason?: string;
 };
@@ -78,6 +85,7 @@ export async function appendAudit(
     persona: input.persona,
     action: input.action,
     detail: input.detail,
+    params: input.params,
     customerId: input.customerId,
     reason: input.reason,
   };
