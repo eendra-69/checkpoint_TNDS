@@ -17,7 +17,7 @@ The app:
 - Three HD-2D worlds: `/office` (with Classic | Office switch and first-run onboarding tour), `/workshop`, `/lounge`. Every world is walkable and fully reachable — verified tile-by-tile.
 - Floating pitch assistant; app-wide **VI | EN** (`tasco-locale`), agent `preferredLanguage` synced on chat.
 - Claims desk is in-office demo only.
-- Production: https://tasco-renewal-demo.vercel.app (Vercel root directory must be `demo`).
+- Production: https://tasco-tnds-demo.vercel.app (Vercel root directory must be `demo`).
 
 Full change history: [../CHANGELOG.md](../CHANGELOG.md).
 

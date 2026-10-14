@@ -27,7 +27,7 @@ Root `package.json` scripts just forward into `demo/` (`npm run dev`, `build`, `
 
 The presentation site deliberately reuses the app's palette and its three typefaces (Outfit / Be Vietnam Pro / VT323) — copy a token from `demo/src/app/globals.css` rather than inventing a new colour.
 
-Live: https://tasco-renewal-demo.vercel.app
+Live: https://tasco-tnds-demo.vercel.app
 
 ## The three virtual spaces
 

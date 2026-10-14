@@ -9,11 +9,12 @@ This repository has two halves:
 | `index.html` + `site.css` | The presentation site — explains the demo and links into it | None. Plain HTML + CSS. |
 | `demo/` | The demo app itself — a complete Next.js 16 project | `npm install && npm run dev` |
 
-**Live demo:** https://tasco-renewal-demo.vercel.app
+**Live demo:** https://tasco-tnds-demo.vercel.app
 **GitHub:** https://github.com/jrrqd/tasco-renewal-demo (private)
 
-Every "Open the demo" link points at `demo/`. Locally the static server
-redirects that path to the running dev server, so the two behave like one origin.
+Demo links point straight at the live deployment. The local static server still
+maps `demo/…` onto the running dev server, so both halves still behave like one
+origin locally.
 
 ## Quick start
 

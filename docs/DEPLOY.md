@@ -3,8 +3,8 @@
 ## Remotes
 
 - GitHub: `https://github.com/jrrqd/tasco-renewal-demo.git` (private), branch `main`.
-- Vercel project: `tasco-renewal-demo` (team `radr`).
-- Production alias: **https://tasco-renewal-demo.vercel.app**
+- Vercel project: `tasco-tnds-demo` (team `radr`).
+- Production alias: **https://tasco-tnds-demo.vercel.app**
 - Linked config: `app/.vercel/project.json` (`prj_1Ay6P3xopvQcH392jfuPfmZ81Y9G`).
 
 Git working tree is **`app/`**, not the parent `2026 tasco` folder.
@@ -98,4 +98,4 @@ GitHub push can still succeed while Vercel Git integration stays blocked. Prefer
 
 ## After deploy
 
-Confirm https://tasco-renewal-demo.vercel.app loads, VI/EN toggle works, and customer → office still opens. In-memory sessions on serverless will **reset** between instances unless Upstash is configured.
+Confirm https://tasco-tnds-demo.vercel.app loads, VI/EN toggle works, and customer → office still opens. In-memory sessions on serverless will **reset** between instances unless Upstash is configured.
