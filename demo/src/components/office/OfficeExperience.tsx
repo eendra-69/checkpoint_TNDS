@@ -15,6 +15,8 @@ import { InteractPrompt } from "./ui/InteractPrompt";
 import { JrpgDialog } from "./ui/JrpgDialog";
 import { useOnboardingOptional } from "@/components/onboarding/onboarding-context";
 import { usePresence } from "@/components/world/use-presence";
+import { WorldTopBar } from "@/components/world/world-top-bar";
+import type { WorldLabels } from "@/components/world/world-switcher";
 
 const OfficeScene = dynamic(
   () => import("./OfficeScene").then((m) => m.OfficeScene),
@@ -44,6 +46,7 @@ export function OfficeExperience({
   consent,
   certificateId,
   initialStation,
+  worldLabels,
   locale = "vi",
 }: {
   customerId: string;
@@ -54,6 +57,7 @@ export function OfficeExperience({
   consent: ConsentFlags;
   certificateId?: string;
   initialStation?: OfficeStation | null;
+  worldLabels: WorldLabels;
   locale?: "vi" | "en";
 }) {
   const router = useRouter();
@@ -64,6 +68,23 @@ export function OfficeExperience({
   );
   const [near, setNear] = useState<InteractableDef | null>(null);
   const [introDone, setIntroDone] = useState(false);
+
+  // The sidebar's "Renewal process" and "Claim process" deep-link into a
+  // station via ?station=. If the office is already mounted, the useState
+  // above never re-runs, so the panel would silently not open.
+  //
+  // Disabled deliberately: the dependency is `initialStation`, so this fires
+  // only when a navigation actually changes the station — never per render,
+  // which is the cascading-render case the rule guards against. Deriving from
+  // `useSearchParams()` instead would mean a server round trip before the
+  // panel opens, because changing ?station= re-runs the page on the server.
+  useEffect(() => {
+    if (initialStation && initialStation !== "vetc") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setActive(initialStation);
+      setIntroDone(false);
+    }
+  }, [initialStation]);
   const movementLocked = Boolean(active) || Boolean(onboarding?.locksOffice);
 
   // Other signed-in users currently standing in the office.
@@ -111,17 +132,11 @@ export function OfficeExperience({
         />
       </div>
 
-      <div className="pointer-events-none absolute right-3 top-3 z-10">
-        <span className="jrpg-window px-2.5 py-1 font-pixel text-[11px] text-white">
-          {connected ? `${others.length + 1} online` : "…"}
-        </span>
-      </div>
-
-      <div className="pointer-events-none absolute inset-x-0 top-4 z-10 flex justify-center px-4">
-        <div className="jrpg-window px-4 py-2 font-pixel text-xs text-white/90 sm:text-sm">
-          {nearCopy && !active ? nearCopy.prompt : t.hintWalk}
-        </div>
-      </div>
+      <WorldTopBar
+        labels={worldLabels}
+        hint={nearCopy && !active ? nearCopy.prompt : t.hintWalk}
+        online={connected ? `${others.length + 1} online` : "…"}
+      />
 
       {nearCopy && !active && !onboarding?.locksOffice && (
         <InteractPrompt text={`${t.hintNear} — ${nearCopy.name}`} />

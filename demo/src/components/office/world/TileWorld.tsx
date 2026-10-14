@@ -5,7 +5,8 @@ import * as THREE from "three";
 import { useTexture } from "@react-three/drei";
 import { COLLISION, FLOOR, MAP_H, MAP_W, TILE } from "./map";
 import { TiledPanel, TiledFloor, TILESET } from "@/components/world/tiled-floor";
-import { createTascoBannerTexture, TASCO_3D } from "../brand-textures";
+import { TascoBanner } from "@/components/world/tasco-banner";
+import { TASCO_3D } from "../brand-textures";
 
 /**
  * The office's `FLOOR` values were always the tileset cell indices — the floor
@@ -27,8 +28,6 @@ export function TileWorld() {
   backdrop.colorSpace = THREE.SRGBColorSpace;
   backdrop.magFilter = THREE.NearestFilter;
   backdrop.minFilter = THREE.NearestFilter;
-
-  const banner = useMemo(() => createTascoBannerTexture(), []);
 
   const cells = useMemo(
     () => COLLISION.map((row) => row.map((t) => (t === 0 ? FLOOR.pale : t))),
@@ -109,10 +108,7 @@ export function TileWorld() {
         repeat={5}
       />
 
-      <mesh position={[10, 2.3, 0.5]}>
-        <planeGeometry args={[6.4, 1.05]} />
-        <meshStandardMaterial map={banner} roughness={0.5} />
-      </mesh>
+      <TascoBanner subtitle="VIRTUAL OFFICE" position={[10, 2.3, 0.5]} width={6.4} height={1.05} />
 
       {/* Wall-top trim, deliberately NOT spanning the map.
           The follow camera sits at y=6.2 and looks down at ~36deg, so any

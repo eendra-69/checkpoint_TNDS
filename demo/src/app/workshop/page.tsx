@@ -5,6 +5,7 @@ import { requirePermission } from "@/lib/auth";
 import { getOrCreateSession } from "@/lib/session";
 import { getDemoCustomerId } from "@/lib/data/seed";
 import { getLocale } from "@/lib/i18n/locale";
+import { getDictionary } from "@/lib/i18n/dictionaries";
 import { redirect } from "next/navigation";
 
 export default async function WorkshopPage() {
@@ -23,6 +24,7 @@ export default async function WorkshopPage() {
 
   const claims = session.claims.filter((c) => c.customerId === customerId);
   const locale = await getLocale();
+  const dict = getDictionary(locale);
 
   const vehicleView: WorkshopVehicle = {
     make: vehicle.make,
@@ -39,6 +41,11 @@ export default async function WorkshopPage() {
         customerName={customer.fullNameVi}
         vehicle={vehicleView}
         claims={claims}
+        worldLabels={{
+          office: dict.nav.office,
+          workshop: dict.nav.workshop,
+          lounge: dict.nav.lounge,
+        }}
         locale={locale}
       />
     </AppShell>

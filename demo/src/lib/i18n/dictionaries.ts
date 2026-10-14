@@ -6,6 +6,8 @@ const vi = {
     office: "Virtual Office",
     workshop: "Xưởng sửa xe",
     lounge: "Phòng khách",
+    renewal: "Quy trình gia hạn",
+    claim: "Quy trình bồi thường",
     ops: "Ops",
     agent: "Telesales",
     compliance: "Compliance",
@@ -134,6 +136,8 @@ const vi = {
   },
   welcome: {
     assumptionsTitle: "Ghi chú về giả định",
+    guideTitle: "Bắt đầu ở đâu",
+    guideTitleHint: "Đi qua các tính năng chính của ứng dụng này",
     role: {
       customer: "Khách hàng",
       telesales: "Telesales",
@@ -314,11 +318,57 @@ const vi = {
       telesales: { openAgent: "Mở màn hình Telesales", openWorkshop: "Ghé Xưởng sửa xe" },
       campaign_manager: { openOps: "Mở Ops", openMetrics: "Xem Metrics" },
       compliance: { openCompliance: "Mở Compliance", openMetrics: "Xem Metrics" },
-      executive: { openMetrics: "Xem Metrics", openCompliance: "Mở Compliance" },
+      executive: { openMetrics: "Xem Metrics", openLounge: "Ghé Phòng khách" },
       admin: {
         openAdmin: "Mở trang quản trị",
         openCompliance: "Mở Compliance",
         openMetrics: "Xem Metrics",
+      },
+    },
+    guide: {
+      customer: {
+        renewInChat:
+          "Nhắn “gia hạn” trong khung chat — trợ lý sẽ dẫn bạn qua chấm điểm rủi ro, xin consent, rồi mới ra link thanh toán.",
+        meetStaff:
+          "Bước vào Virtual Office để nói chuyện trực tiếp với nhân viên, thay vì qua tin nhắn.",
+        checkVehicle: "Ghé Xưởng sửa xe để xem kiểm tra xe của bạn đang ở bước nào.",
+        switchLang:
+          "Đổi VI / EN ở thanh bên — mọi màn hình đều theo, kể cả tin nhắn của trợ lý.",
+      },
+      telesales: {
+        workQueue:
+          "Bắt đầu ở hàng chờ bàn giao: mỗi hội thoại AI bỏ cuộc đều dừng lại đây kèm đầy đủ bối cảnh.",
+        piiReason:
+          "Mở thông tin định danh khách hàng phải ghi lý do, và lý do đó được ghi vào sổ kiểm toán.",
+        renewLink: "Đóng hồ sơ bằng cách gửi link gia hạn — không cần gọi.",
+        hearDrivers: "Vào Phòng khách để nghe khách hàng đang nói gì.",
+      },
+      campaign_manager: {
+        reviewScores:
+          "Lead được chấm điểm theo xu hướng gia hạn — mở danh sách để xem vì sao mỗi lead ở nhóm đó.",
+        runCampaign: "Chạy chiến dịch và xem bộ lọc consent và điều kiện loại ai ra.",
+        readFunnel: "Phễu cho biết khách đang dừng ở bước nào, nên canh thiếp ở đâu.",
+        hearDrivers: "Ghé Phòng khách để đọc phản hồi thật, không chỉ số liệu.",
+      },
+      compliance: {
+        readLedger: "Sổ kiểm toán chỉ ghi thêm. Mở mục kiểm toán để xem ai đã làm gì.",
+        piiTrail: "Mỗi lần xem PII đều có lý do kèm theo — đây là danh sách các lý do đó.",
+        tryAdmin:
+          "Bạn chỉ có quyền đọc. Mở trang quản trị để xem hệ thống từ chối bạn như thế nào.",
+        hearDrivers: "Phòng khách cho thấy khách đang viết gì — và kiểm duyệt diễn ra ở đó.",
+      },
+      executive: {
+        readFunnel: "Phễu cho biết hiệu quả thật của kênh này, không phải con số minh hoạ.",
+        seeUplift: "Tỷ lệ gia hạn được so với mức nền tự nguyện — phần chênh chính là mức tăng.",
+        hearDrivers: "Phòng khách cho bạn nghe lý do khách chưa gia hạn.",
+        watchDenied: "Bạn chỉ xem được số tổng hợp. Mở Compliance để xem quyền dừng ở đâu.",
+      },
+      admin: {
+        permissionMatrix:
+          "Bật hoặc tắt một quyền rồi đăng nhập lại persona đó — phản ứng có hiệu lực ngay.",
+        moderation: "Kiểm duyệt tin nhắn trong Phòng khách trước khi hiển thị.",
+        workflow: "Sơ đồ workflow là máy trạng thái thật, không phải hình minh hoạ.",
+        walkOffice: "Vào Virtual Office để xem trải nghiệm phía khách hàng.",
       },
     },
     assumption: {
@@ -339,6 +389,8 @@ const en = {
     office: "Virtual Office",
     workshop: "Workshop",
     lounge: "Lounge",
+    renewal: "Renewal process",
+    claim: "Claim process",
     ops: "Ops",
     agent: "Telesales",
     compliance: "Compliance",
@@ -467,6 +519,8 @@ const en = {
   },
   welcome: {
     assumptionsTitle: "Assumption notes",
+    guideTitle: "Start here",
+    guideTitleHint: "A walk through the main features of this app",
     role: {
       customer: "Customer",
       telesales: "Telesales",
@@ -647,11 +701,61 @@ const en = {
       telesales: { openAgent: "Open Telesales console", openWorkshop: "Visit the Workshop" },
       campaign_manager: { openOps: "Open Ops", openMetrics: "View Metrics" },
       compliance: { openCompliance: "Open Compliance", openMetrics: "View Metrics" },
-      executive: { openMetrics: "View Metrics", openCompliance: "Open Compliance" },
+      executive: { openMetrics: "View Metrics", openLounge: "Visit the Lounge" },
       admin: {
         openAdmin: "Open admin console",
         openCompliance: "Open Compliance",
         openMetrics: "View Metrics",
+      },
+    },
+    guide: {
+      customer: {
+        renewInChat:
+          "Say “gia hạn” in chat — the agent walks you through risk scoring, asks for consent, then issues a payment link.",
+        meetStaff:
+          "Step into the Virtual Office to talk to a member of staff face to face instead of by message.",
+        checkVehicle: "Visit the workshop to see where your vehicle inspection has got to.",
+        switchLang:
+          "Switch VI / EN in the sidebar — every screen follows, including the agent's replies.",
+      },
+      telesales: {
+        workQueue:
+          "Start with the handover queue: every AI thread that gave up lands here with its full context.",
+        piiReason:
+          "Revealing a customer's identity requires a reason, and that reason is written to the audit ledger.",
+        renewLink: "Close a case by sending the renewal link — no call needed.",
+        hearDrivers: "Open the Lounge to hear what drivers are actually saying.",
+      },
+      campaign_manager: {
+        reviewScores:
+          "Leads are scored on renewal propensity — open the list to see why each one landed where it did.",
+        runCampaign:
+          "Run a campaign and watch the consent and eligibility filters exclude people for you.",
+        readFunnel: "The funnel shows where customers stall, so you know where to intervene.",
+        hearDrivers: "Drop into the Lounge to read real replies instead of just the numbers.",
+      },
+      compliance: {
+        readLedger: "The ledger is append-only. Open the audit view to see who did what.",
+        piiTrail: "Every PII reveal carries a justification — this is the list of them.",
+        tryAdmin:
+          "You are read-only. Open the admin page to watch the system refuse you.",
+        hearDrivers: "The Lounge shows what customers are writing — and where moderation happens.",
+      },
+      executive: {
+        readFunnel:
+          "The funnel shows the real performance of this channel, not a modelled number.",
+        seeUplift:
+          "The renewal rate is measured against the voluntary baseline — the gap is the uplift.",
+        hearDrivers: "The Lounge tells you why customers did not renew.",
+        watchDenied:
+          "You see aggregates only. Open Compliance to see exactly where your access stops.",
+      },
+      admin: {
+        permissionMatrix:
+          "Toggle a permission, then sign back in as that persona — the change applies immediately.",
+        moderation: "Moderate Lounge messages before they are shown.",
+        workflow: "The workflow diagram is the real state machine, not an illustration.",
+        walkOffice: "Walk into the Virtual Office to see the customer's side of it.",
       },
     },
     assumption: {

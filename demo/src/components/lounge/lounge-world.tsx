@@ -3,6 +3,7 @@
 import { buildWorldMap, type InteractableDef, type WorldMap } from "@/components/world/world-map";
 import { PropLayer, type PropPlacement } from "@/components/world/prop-sprite";
 import { TiledFloor, TiledPanel, TILESET } from "@/components/world/tiled-floor";
+import { TascoBanner, TascoFloorMat } from "@/components/world/tasco-banner";
 import { TASCO_3D } from "@/components/office/brand-textures";
 import type { PersonaId } from "@/lib/types";
 
@@ -214,6 +215,15 @@ export function LoungeWorldNodes() {
           tint={p.tint}
         />
       ))}
+
+      {/* Brand sign in the clear band between the picture rail and the wall-top
+          trim. Centred and narrower than the picture frames on either side, so
+          it lands in the gap between them rather than across them. */}
+      <TascoBanner subtitle="VIRTUAL LOUNGE" position={[9, 2.0, 0.4]} width={5} height={1.2} />
+
+      {/* Matching floor mat on the oak boards. Kept a few metres ahead of the spawn
+          point so the player sprite standing on it does not cover the wordmark. */}
+      <TascoFloorMat subtitle="VIRTUAL LOUNGE" position={[9, 0.02, 8]} width={2.8} depth={0.7} />
 
       <PropLayer src="/lounge/props.png" props={LOUNGE_PROPS} />
 

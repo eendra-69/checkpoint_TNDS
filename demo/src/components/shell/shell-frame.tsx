@@ -7,10 +7,12 @@ import {
   BarChart3,
   Building2,
   Coffee,
+  FileText,
   GitBranch,
   Headset,
   Home,
   Menu,
+  RefreshCw,
   Settings,
   ShieldCheck,
   TrendingUp,
@@ -18,11 +20,13 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ShellControls } from "@/components/shell/shell-controls";
+import type { Locale } from "@/lib/i18n/locale";
 
 export type ShellNavItem = {
   href: string;
   label: string;
-  icon: "home" | "office" | "workshop" | "lounge" | "ops" | "agent" | "compliance" | "metrics" | "admin" | "workflow";
+  icon: "home" | "office" | "workshop" | "lounge" | "ops" | "agent" | "compliance" | "metrics" | "admin" | "workflow" | "renewal" | "claim";
 };
 
 const ICONS: Record<ShellNavItem["icon"], typeof Home> = {
@@ -36,6 +40,8 @@ const ICONS: Record<ShellNavItem["icon"], typeof Home> = {
   metrics: TrendingUp,
   admin: Settings,
   workflow: GitBranch,
+  renewal: RefreshCw,
+  claim: FileText,
 };
 
 function isActive(pathname: string, href: string) {
@@ -92,6 +98,7 @@ export function ShellFrame({
   personaLabel,
   profile,
   actions,
+  locale,
   title,
   subtitle,
   compact,
@@ -102,7 +109,9 @@ export function ShellFrame({
   brand: { name: string; tagline: string };
   personaLabel?: string;
   profile?: ReactNode;
+  /** Identity and account controls, shown in the sidebar footer. */
   actions: ReactNode;
+  locale: Locale;
   title?: string;
   subtitle?: string;
   compact?: boolean;
@@ -193,19 +202,27 @@ export function ShellFrame({
       )}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center gap-3 px-4 py-3 lg:hidden">
+        {/* One bar for every breakpoint: brand + menu on mobile, and the
+            language/tour frame pinned right on all sizes. Desktop used to have
+            no top bar at all, which is why these controls lived in the sidebar
+            footer. The 3D worlds reserve 100vh - 4.5rem, so a ~3.5rem bar
+            keeps them from overflowing. */}
+        <div className="flex items-center gap-3 border-b border-border/60 px-4 py-3 sm:px-6">
           <button
             type="button"
             onClick={() => setOpen(true)}
-            className="inline-flex items-center gap-2 rounded-xl bg-tasco-ink px-3 py-2 text-sm font-semibold text-white"
+            className="inline-flex items-center gap-2 rounded-xl bg-tasco-ink px-3 py-2 text-sm font-semibold text-white lg:hidden"
           >
             <Menu className="h-4 w-4" />
             Menu
           </button>
-          <span className="font-display text-sm font-semibold tracking-[0.16em] text-tasco-ink">
+          <span className="font-display text-sm font-semibold tracking-[0.16em] text-tasco-ink lg:hidden">
             {brand.name}
           </span>
-        </header>
+          <div className="ml-auto">
+            <ShellControls locale={locale} tone="light" />
+          </div>
+        </div>
 
         {(title || subtitle) && !bleed && (
           <div className={cn("px-4 sm:px-6", compact ? "pt-2" : "pt-4")}>

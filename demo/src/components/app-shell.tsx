@@ -1,13 +1,9 @@
 import { getAuth } from "@/lib/auth";
-import { getCustomerUiMode } from "@/lib/customer-mode";
 import { getSession } from "@/lib/session";
 import { hasPermission } from "@/lib/rbac";
 import { PersonaPill } from "@/components/persona-pill";
 import { DemoWatermark } from "@/components/demo-watermark";
-import { ModeToggle } from "@/components/mode-toggle";
-import { LanguageToggle } from "@/components/language-toggle";
 import { OnboardingHost } from "@/components/onboarding/onboarding-host";
-import { ShellTourButton } from "@/components/onboarding/shell-tour-button";
 import { getLocale } from "@/lib/i18n/locale";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 import { ShellFrame, type ShellNavItem } from "@/components/shell/shell-frame";
@@ -29,14 +25,21 @@ export async function AppShell({
   const auth = await getAuth();
   const session = auth ? await getSession(auth.sessionId) : null;
   const overrides = session?.settings.permissionOverrides;
-  const uiMode = await getCustomerUiMode();
   const locale = await getLocale();
   const dict = getDictionary(locale);
   const isCustomer = auth?.persona === "customer";
 
-  const NAV: (ShellNavItem & { permission?: Parameters<typeof hasPermission>[1] })[] = [
+  const NAV: (ShellNavItem & {
+    permission?: Parameters<typeof hasPermission>[1];
+    /** Customer-only shortcuts into an office station. Staff never see these. */
+    customerOnly?: boolean;
+  })[] = [
     { href: "/", label: dict.nav.home, icon: "home" },
     { href: "/office", label: dict.nav.office, icon: "office", permission: "chat:use" },
+    // The two business processes, reachable without walking across the room.
+    // They resolve to office stations, so "Virtual Office" stays the lit item.
+    { href: "/office?station=cs", label: dict.nav.renewal, icon: "renewal", permission: "chat:use", customerOnly: true },
+    { href: "/office?station=claims", label: dict.nav.claim, icon: "claim", permission: "chat:use", customerOnly: true },
     { href: "/workshop", label: dict.nav.workshop, icon: "workshop", permission: "workshop:use" },
     { href: "/lounge", label: dict.nav.lounge, icon: "lounge", permission: "lounge:use" },
     { href: "/ops", label: dict.nav.ops, icon: "ops", permission: "ops:view" },
@@ -48,11 +51,13 @@ export async function AppShell({
   ];
 
   const items: ShellNavItem[] = NAV.filter((item) => {
+    if (item.customerOnly && !isCustomer) return false;
     if (!item.permission) return true;
     if (!auth) return false;
-    // Customers only roam the three worlds plus home; staff screens stay hidden.
+    // Customers roam Home, the office and its two processes. Workshop and
+    // lounge stay reachable from the world switcher inside the office.
     if (isCustomer) {
-      return ["/", "/office", "/workshop", "/lounge"].includes(item.href);
+      return ["/", "/office", "/office?station=cs", "/office?station=claims"].includes(item.href);
     }
     return hasPermission(auth.persona, item.permission, overrides);
   }).map(({ href, label, icon }) => ({ href, label, icon }));
@@ -75,11 +80,9 @@ export async function AppShell({
         subtitle={subtitle}
         compact={compact}
         bleed={bleed}
+        locale={locale}
         actions={
           <>
-            <LanguageToggle locale={locale} />
-            <ShellTourButton />
-            {isCustomer && <ModeToggle mode={uiMode} labels={dict.chrome} />}
             {auth ? (
               <PersonaPill auth={auth} labels={dict.personaPill} />
             ) : (

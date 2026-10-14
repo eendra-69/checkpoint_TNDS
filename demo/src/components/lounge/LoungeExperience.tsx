@@ -10,6 +10,8 @@ import type { PersonaId } from "@/lib/types";
 import type { Locale } from "@/lib/i18n/locale";
 import { LOUNGE_MAP, LOUNGE_PRESENCE_SHEETS, LoungeWorldNodes } from "./lounge-world";
 import { LoungeChat, type LoungeChatCopy } from "./LoungeChat";
+import { WorldTopBar } from "@/components/world/world-top-bar";
+import type { WorldLabels } from "@/components/world/world-switcher";
 
 type LoungeCopy = {
   loading: string;
@@ -98,10 +100,12 @@ export function loungeCopy(locale: Locale = "vi"): LoungeCopy {
 export function LoungeExperience({
   displayName,
   persona,
+  worldLabels,
   locale = "vi",
 }: {
   displayName: string;
   persona: PersonaId;
+  worldLabels: WorldLabels;
   locale?: Locale;
 }) {
   const t = useMemo(() => loungeCopy(locale), [locale]);
@@ -150,17 +154,11 @@ export function LoungeExperience({
         </div>
       </SceneCopyContext.Provider>
 
-      <div className="pointer-events-none absolute right-3 top-3 z-10">
-        <span className="jrpg-window px-2.5 py-1 font-pixel text-[11px] text-white">
-          {connected ? t.online(others.length + 1) : "…"}
-        </span>
-      </div>
-
-      <div className="pointer-events-none absolute inset-x-0 top-4 z-10 flex justify-center px-4">
-        <div className="jrpg-window px-4 py-2 font-pixel text-xs text-white/90 sm:text-sm">
-          {nearChat ? t.stationPrompt : t.hintWalk}
-        </div>
-      </div>
+      <WorldTopBar
+        labels={worldLabels}
+        hint={nearChat ? t.stationPrompt : t.hintWalk}
+        online={connected ? t.online(others.length + 1) : "…"}
+      />
 
       {nearChat && <InteractPrompt text={t.hintNear} />}
 

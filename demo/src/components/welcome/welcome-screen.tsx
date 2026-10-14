@@ -1,11 +1,16 @@
 import Link from "next/link";
-import { Check, Circle, Loader } from "lucide-react";
+import { ArrowRight, Check, Circle, Loader } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { t } from "@/lib/i18n/t";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
-import type { WelcomeMetric, WelcomeModel, WelcomeTask } from "@/lib/welcome";
+import type {
+  WelcomeGuide,
+  WelcomeMetric,
+  WelcomeModel,
+  WelcomeTask,
+} from "@/lib/welcome";
 
 /**
  * Persona landing screen reached from the sidebar Home button.
@@ -101,6 +106,51 @@ function TaskRow({ task, label }: { task: WelcomeTask; label: string }) {
   return <div className="flex items-center gap-3 px-3 py-2.5">{body}</div>;
 }
 
+function GuideList({
+  items,
+  label,
+}: {
+  items: WelcomeGuide[];
+  label: (id: string) => string;
+}) {
+  return (
+    <ol className="mt-3 grid gap-2 sm:grid-cols-2">
+      {items.map((item, i) => {
+        const body = (
+          <>
+            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-tasco-lime/15 font-mono text-[0.7rem] font-semibold tabular-nums text-tasco-leaf">
+              {i + 1}
+            </span>
+            <span className="min-w-0 flex-1">{label(item.id)}</span>
+            {/* Only drawn when the hint is actually a link, so the arrow keeps
+                meaning "go here" instead of appearing on every row. */}
+            {item.href && (
+              <ArrowRight className="h-4 w-4 shrink-0 text-tasco-lime opacity-0 transition group-hover:opacity-100 group-focus-visible:opacity-100" />
+            )}
+          </>
+        );
+
+        const className =
+          "group flex items-start gap-3 rounded-xl border border-border bg-card p-3 text-sm shadow-sm transition hover:border-tasco-lime/50 hover:bg-tasco-mist/40";
+
+        return (
+          <li key={item.id}>
+            {item.href ? (
+              <Link href={item.href} className={className}>
+                {body}
+              </Link>
+            ) : (
+              <div className={cn(className, "border-dashed text-muted-foreground")}>
+                {body}
+              </div>
+            )}
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
 export function WelcomeScreen({
   model,
   dict,
@@ -109,7 +159,7 @@ export function WelcomeScreen({
   dict: Dictionary;
 }) {
   const { persona, vars } = model;
-  const label = (group: "metrics" | "tasks" | "actions", id: string) =>
+  const label = (group: "metrics" | "tasks" | "actions" | "guide", id: string) =>
     t(dict, `welcome.${group}.${persona}.${id}`, vars);
 
   return (
@@ -143,6 +193,20 @@ export function WelcomeScreen({
           </div>
         </div>
       </section>
+
+      {model.guide.length > 0 && (
+        <section>
+          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <h2 className="font-display text-lg font-semibold text-tasco-ink">
+              {t(dict, "welcome.guideTitle", vars)}
+            </h2>
+            <p className="text-xs text-muted-foreground">
+              {t(dict, "welcome.guideTitleHint", vars)}
+            </p>
+          </div>
+          <GuideList items={model.guide} label={(id) => label("guide", id)} />
+        </section>
+      )}
 
       <section>
         <h2 className="font-display text-lg font-semibold text-tasco-ink">

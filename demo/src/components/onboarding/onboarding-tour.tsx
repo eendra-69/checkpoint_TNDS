@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { Compass } from "lucide-react";
 import { useOnboarding } from "./onboarding-context";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -105,7 +106,13 @@ export function OnboardingTour() {
   );
 }
 
-export function OnboardingTourButton({ className }: { className?: string }) {
+export function OnboardingTourButton({
+  className,
+  tone = "dark",
+}: {
+  className?: string;
+  tone?: "dark" | "light";
+}) {
   const { start, ui, open } = useOnboarding();
   return (
     <button
@@ -113,10 +120,14 @@ export function OnboardingTourButton({ className }: { className?: string }) {
       onClick={() => start(true)}
       disabled={open}
       className={cn(
-        "rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur hover:bg-white/20 disabled:opacity-50",
+        "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition disabled:opacity-50",
+        tone === "dark"
+          ? "text-white hover:bg-white/15"
+          : "text-tasco-ink hover:bg-tasco-mist",
         className,
       )}
     >
+      <Compass className="h-3.5 w-3.5" aria-hidden />
       {ui.tour}
     </button>
   );

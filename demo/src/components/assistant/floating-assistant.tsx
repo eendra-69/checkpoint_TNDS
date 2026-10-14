@@ -95,7 +95,9 @@ export function FloatingAssistant({
   return (
     <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end gap-3">
       {open && (
-        <div className="flex h-[420px] w-[340px] flex-col overflow-hidden rounded-2xl border bg-white shadow-2xl">
+        // `min()` so the panel keeps its 340px on a desktop but shrinks to fit
+        // a narrow phone — a bare fixed width overflows below ~360px viewports.
+        <div className="flex h-[min(420px,60vh)] w-[min(340px,calc(100vw-2.5rem))] flex-col overflow-hidden rounded-2xl border bg-white shadow-2xl">
           <div className="hero-gradient px-4 py-3 text-white">
             <div className="text-sm font-semibold">Tasco assistant</div>
             <div className="text-[11px] text-white/70">

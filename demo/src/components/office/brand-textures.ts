@@ -32,7 +32,13 @@ function toTexture(canvas: HTMLCanvasElement) {
   return tex;
 }
 
-export function createTascoBannerTexture() {
+/**
+ * `subtitle` is the room name under the wordmark. It stays English even in the
+ * VI build because it is diegetic signage inside the scene — the same way a
+ * real branch's wall sign is not rewritten per visitor's locale — while the UI
+ * labels around it do come from the dictionary.
+ */
+export function createTascoBannerTexture(subtitle = "VIRTUAL OFFICE") {
   const { canvas, ctx } = makeCanvas(256, 64);
   ctx.fillStyle = TASCO_3D.deep;
   ctx.fillRect(0, 0, 256, 64);
@@ -51,7 +57,7 @@ export function createTascoBannerTexture() {
   ctx.fillText("TASCO", 48, 28);
   ctx.fillStyle = TASCO_3D.white;
   ctx.font = "bold 10px monospace";
-  ctx.fillText("VIRTUAL OFFICE", 50, 46);
+  ctx.fillText(subtitle, 50, 46);
   return toTexture(canvas);
 }
 

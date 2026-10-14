@@ -3,6 +3,7 @@ import { LoungeExperience } from "@/components/lounge/LoungeExperience";
 import { requirePermission } from "@/lib/auth";
 import { getOrCreateSession } from "@/lib/session";
 import { getLocale } from "@/lib/i18n/locale";
+import { getDictionary } from "@/lib/i18n/dictionaries";
 
 export default async function LoungePage() {
   const auth = await requirePermission("lounge:use");
@@ -13,12 +14,18 @@ export default async function LoungePage() {
   await getOrCreateSession(auth.sessionId);
 
   const locale = await getLocale();
+  const dict = getDictionary(locale);
 
   return (
     <AppShell compact bleed>
       <LoungeExperience
         displayName={auth.displayName?.trim() || auth.persona}
         persona={auth.persona}
+        worldLabels={{
+          office: dict.nav.office,
+          workshop: dict.nav.workshop,
+          lounge: dict.nav.lounge,
+        }}
         locale={locale}
       />
     </AppShell>

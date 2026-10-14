@@ -1,6 +1,6 @@
 {
   "name": "tasco-tnds-renewal-journey",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "description": "Presentation site for the TASCO TNDS renewal demo (BeyondPilot x Tasco, GenAI Fund). The Next.js app lives in demo/.",
   "scripts": {

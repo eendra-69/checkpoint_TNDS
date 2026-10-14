@@ -87,10 +87,12 @@ async function startSignIn(input: SignInInput) {
   });
   await saveSession(session);
 
-  const home =
-    input.next || (persona === "customer" ? "/office" : PERSONAS[persona].homePath);
-
-  redirect(home);
+  // Everyone lands on `/`, which renders the persona welcome screen: their own
+  // numbers, their own checklist, and a short guide to what the app can do.
+  // Dropping them straight onto `/office` or `/agent` dropped them into a
+  // working surface with no explanation of what they were looking at.
+  // `next` still wins, so deep links like /call/cust_lan survive sign-in.
+  redirect(input.next || "/");
 }
 
 export async function signOut() {
@@ -102,5 +104,7 @@ export async function resetDemo() {
   const auth = await getAuth();
   if (!auth) redirect("/login");
   await resetSession(auth.sessionId);
-  redirect(PERSONAS[auth.persona].homePath);
+  // Back to the persona welcome screen, now with every counter back at zero —
+  // which is exactly when a judge wants to see the "before" state.
+  redirect("/");
 }

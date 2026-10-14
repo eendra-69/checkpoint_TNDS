@@ -3,8 +3,7 @@ import { getAuth } from "@/lib/auth";
 import { PersonaPill } from "@/components/persona-pill";
 import { DemoWatermark } from "@/components/demo-watermark";
 import { OnboardingHost } from "@/components/onboarding/onboarding-host";
-import { ShellTourButton } from "@/components/onboarding/shell-tour-button";
-import { LanguageToggle } from "@/components/language-toggle";
+import { ShellControls } from "@/components/shell/shell-controls";
 import { getLocale } from "@/lib/i18n/locale";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 
@@ -41,9 +40,9 @@ export async function MarketingShell({
                 <div className="text-[11px] text-white/70">BeyondPilot Demo</div>
               </div>
             </Link>
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-              <LanguageToggle locale={locale} />
-              <ShellTourButton />
+            {/* Controls frame last so it stays hard right, matching the app
+                shell. `justify-end` keeps it right-aligned when this wraps. */}
+            <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
               {auth ? (
                 <PersonaPill auth={auth} labels={dict.personaPill} />
               ) : (
@@ -54,6 +53,7 @@ export async function MarketingShell({
                   {dict.chrome.signIn}
                 </Link>
               )}
+              <ShellControls locale={locale} tone="dark" />
             </div>
           </div>
         </header>

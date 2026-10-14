@@ -11,6 +11,8 @@ import { InspectionPanel, type WorkshopVehicle } from "./InspectionPanel";
 import { TouchPad } from "@/components/office/ui/TouchPad";
 import { InteractPrompt } from "@/components/office/ui/InteractPrompt";
 import { usePresence } from "@/components/world/use-presence";
+import { WorldTopBar } from "@/components/world/world-top-bar";
+import type { WorldLabels } from "@/components/world/world-switcher";
 
 const PRESENCE_SHEETS = {
   customer: "/office/player.png",
@@ -74,11 +76,13 @@ export function WorkshopExperience({
   customerName,
   vehicle,
   claims,
+  worldLabels,
   locale = "vi",
 }: {
   customerName: string;
   vehicle: WorkshopVehicle;
   claims: Claim[];
+  worldLabels: WorldLabels;
   locale?: "vi" | "en";
 }) {
   const t = workshopCopy(locale);
@@ -109,6 +113,12 @@ export function WorkshopExperience({
 
   return (
     <div className="relative min-h-[calc(100vh-4.5rem)] flex-1 bg-tasco-ink">
+      <WorldTopBar
+        labels={worldLabels}
+        hint={nearCopy && !active ? nearCopy.prompt : t.hintWalk}
+        online={connected ? `${others.length + 1} online` : "…"}
+      />
+
       <div className="absolute inset-0">
         <WorldScene
           world={WORKSHOP_MAP}
@@ -121,18 +131,6 @@ export function WorkshopExperience({
           presenceSheets={PRESENCE_SHEETS}
           worldNodes={<WorkshopWorldNodes />}
         />
-      </div>
-
-      <div className="pointer-events-none absolute inset-x-0 top-4 z-10 flex justify-center px-4">
-        <div className="jrpg-window px-4 py-2 font-pixel text-xs text-white/90 sm:text-sm">
-          {nearCopy && !active ? nearCopy.prompt : t.hintWalk}
-        </div>
-      </div>
-
-      <div className="pointer-events-none absolute right-3 top-3 z-10">
-        <span className="jrpg-window px-2.5 py-1 font-pixel text-[11px] text-white">
-          {connected ? `${others.length + 1} online` : "…"}
-        </span>
       </div>
 
       {nearCopy && !active && (

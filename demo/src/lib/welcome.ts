@@ -5,6 +5,7 @@ import type {
   OutcomeCode,
   PersonaId,
 } from "./types";
+import { PERSONAS } from "./rbac";
 
 /**
  * Everything the persona welcome screen shows, derived from the demo session.
@@ -47,6 +48,19 @@ export type WelcomeAction = {
   tone: "primary" | "ghost";
 };
 
+/**
+ * One "try this" hint shown on the welcome screen.
+ *
+ * These are onboarding, not tasks: a task is something the persona still owes
+ * the business, a guide entry explains what a part of the app actually does.
+ * `href` is optional — some hints are about behaviour (why PII needs a reason)
+ * and read better without a destination.
+ */
+export type WelcomeGuide = {
+  id: string;
+  href?: string;
+};
+
 export type WelcomeModel = {
   persona: PersonaId;
   /**
@@ -57,6 +71,8 @@ export type WelcomeModel = {
   metrics: WelcomeMetric[];
   tasks: WelcomeTask[];
   actions: WelcomeAction[];
+  /** Onboarding hints — what this persona can try, and where. */
+  guide: WelcomeGuide[];
   /** Keys into `welcome.assumption.<persona>` for figures that are assumptions. */
   assumptionKeys: string[];
 };
@@ -143,6 +159,10 @@ function customerModel(
   const certificate = session.certificates.find((c) => c.customerId === focus?.id);
   const state = focus ? session.caseStates[focus.id] : undefined;
 
+  // `/chat` has no page of its own — it is `/chat/[customerId]`, so a bare
+  // link 404s. Every customer-facing shortcut has to carry the real id.
+  const chatHref = focus ? `/chat/${focus.id}` : "/chat";
+
   const daysLeft = policy
     ? Math.round(
         (new Date(policy.expiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24),
@@ -185,16 +205,16 @@ function customerModel(
 
   const tasks: WelcomeTask[] = [];
   if (!policy) {
-    tasks.push({ id: "addPolicy", state: "todo", href: "/chat" });
+    tasks.push({ id: "addPolicy", state: "todo", href: chatHref });
   }
   if (vehicle?.incomplete) {
-    tasks.push({ id: "completeVehicle", state: "todo", href: "/chat" });
+    tasks.push({ id: "completeVehicle", state: "todo", href: chatHref });
   }
   if (!certificate && policy) {
     tasks.push({
       id: "renewNow",
       state: daysLeft !== null && daysLeft <= 30 ? "active" : "todo",
-      href: "/chat",
+      href: chatHref,
     });
   }
   if (certificate) {
@@ -214,9 +234,15 @@ function customerModel(
     metrics,
     tasks,
     actions: [
-      { id: "openOffice", href: "/office", tone: "primary" },
-      { id: "openChat", href: "/chat", tone: "ghost" },
+      { id: "openOffice", href: PERSONAS.customer.homePath, tone: "primary" },
+      { id: "openChat", href: chatHref, tone: "ghost" },
       { id: "openLounge", href: "/lounge", tone: "ghost" },
+    ],
+    guide: [
+      { id: "renewInChat", href: chatHref },
+      { id: "meetStaff", href: "/office" },
+      { id: "checkVehicle", href: "/workshop" },
+      { id: "switchLang" },
     ],
     assumptionKeys: [],
   };
@@ -291,8 +317,14 @@ function telesalesModel(session: DemoSession): WelcomeModel {
       },
     ],
     actions: [
-      { id: "openAgent", href: "/agent", tone: "primary" },
+      { id: "openAgent", href: PERSONAS.telesales.homePath, tone: "primary" },
       { id: "openWorkshop", href: "/workshop", tone: "ghost" },
+    ],
+    guide: [
+      { id: "workQueue", href: "/agent" },
+      { id: "piiReason", href: "/agent" },
+      { id: "renewLink", href: "/agent" },
+      { id: "hearDrivers", href: "/lounge" },
     ],
     assumptionKeys: ["dailyTarget"],
   };
@@ -358,8 +390,14 @@ function campaignModel(session: DemoSession): WelcomeModel {
       },
     ],
     actions: [
-      { id: "openOps", href: "/ops", tone: "primary" },
+      { id: "openOps", href: PERSONAS.campaign_manager.homePath, tone: "primary" },
       { id: "openMetrics", href: "/metrics", tone: "ghost" },
+    ],
+    guide: [
+      { id: "reviewScores", href: "/ops" },
+      { id: "runCampaign", href: "/ops" },
+      { id: "readFunnel", href: "/metrics" },
+      { id: "hearDrivers", href: "/lounge" },
     ],
     assumptionKeys: [],
   };
@@ -409,8 +447,14 @@ function complianceModel(
       { id: "auditTrail", state: "done", meta: `${auditTotal} events`, href: "/compliance" },
     ],
     actions: [
-      { id: "openCompliance", href: "/compliance", tone: "primary" },
+      { id: "openCompliance", href: PERSONAS.compliance.homePath, tone: "primary" },
       { id: "openMetrics", href: "/metrics", tone: "ghost" },
+    ],
+    guide: [
+      { id: "readLedger", href: "/compliance" },
+      { id: "piiTrail", href: "/compliance" },
+      { id: "tryAdmin", href: "/admin" },
+      { id: "hearDrivers", href: "/lounge" },
     ],
     assumptionKeys: [],
   };
@@ -458,8 +502,16 @@ function executiveModel(session: DemoSession): WelcomeModel {
       { id: "openOffice", state: "todo", href: "/office" },
     ],
     actions: [
-      { id: "openMetrics", href: "/metrics", tone: "primary" },
-      { id: "openCompliance", href: "/compliance", tone: "ghost" },
+      { id: "openMetrics", href: PERSONAS.executive.homePath, tone: "primary" },
+      // Was /compliance, which this persona does not hold `compliance:view` for
+      // — the button bounced straight to /forbidden. The lounge is open to them.
+      { id: "openLounge", href: "/lounge", tone: "ghost" },
+    ],
+    guide: [
+      { id: "readFunnel", href: "/metrics" },
+      { id: "seeUplift", href: "/metrics" },
+      { id: "hearDrivers", href: "/lounge" },
+      { id: "watchDenied", href: "/compliance" },
     ],
     assumptionKeys: ["renewalBaseline"],
   };
@@ -522,9 +574,15 @@ function adminModel(
       { id: "workflow", state: "todo", href: "/admin/workflow" },
     ],
     actions: [
-      { id: "openAdmin", href: "/admin", tone: "primary" },
+      { id: "openAdmin", href: PERSONAS.admin.homePath, tone: "primary" },
       { id: "openCompliance", href: "/compliance", tone: "ghost" },
       { id: "openMetrics", href: "/metrics", tone: "ghost" },
+    ],
+    guide: [
+      { id: "permissionMatrix", href: "/admin" },
+      { id: "moderation", href: "/admin" },
+      { id: "workflow", href: "/admin/workflow" },
+      { id: "walkOffice", href: "/office" },
     ],
     assumptionKeys: [],
   };

@@ -4,6 +4,7 @@ import { TASCO_3D } from "@/components/office/brand-textures";
 import { buildWorldMap, type WorldMap } from "@/components/world/world-map";
 import { PropLayer, type PropPlacement } from "@/components/world/prop-sprite";
 import { TiledFloor, TiledPanel, TILESET } from "@/components/world/tiled-floor";
+import { TascoBanner, TascoFloorMat } from "@/components/world/tasco-banner";
 
 /**
  * Virtual Workshop — a service garage.
@@ -191,18 +192,38 @@ export function WorkshopWorldNodes() {
       </mesh>
 
       {/* Roller shutters on the back wall, tiled from the shared tileset so the
-          garage's metalwork matches the office's art rather than flat grey. */}
+          garage's metalwork matches the office's art rather than flat grey.
+          Shortened from 2.4 to 1.8 to open up wall height for the TASCO sign
+          below — they still reach the floor, so they still read as bay doors. */}
       {[4.5, 9, 13.5].map((sx) => (
         <TiledPanel
           key={sx}
           tile={TILESET.shutter}
           width={3.6}
-          height={2.4}
-          position={[sx, 1.5, 0.4]}
+          height={1.8}
+          position={[sx, 0.9, 0.4]}
           repeat={2}
           tint="#93a08e"
         />
       ))}
+
+      {/* Brand sign, centred over the bays. The wall leaves exactly this band
+          between the shutters and the wall-top trim. */}
+      <TascoBanner
+        subtitle="VIRTUAL WORKSHOP"
+        position={[9, 2.32, 0.4]}
+        width={3.2}
+        height={0.8}
+      />
+
+      {/* Matching floor mat on the walkway. Kept a few metres ahead of the spawn
+          point so the player sprite standing on it does not cover the wordmark. */}
+      <TascoFloorMat
+        subtitle="VIRTUAL WORKSHOP"
+        position={[9, 0.02, 8.9]}
+        width={2.8}
+        depth={0.7}
+      />
 
       <PropLayer src="/workshop/props.png" props={PROP_SPRITES} />
       <PropLayer src="/workshop/vehicles.png" props={VEHICLE_SPRITES} />
