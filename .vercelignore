@@ -1,0 +1,14 @@
+# The repo root is deployed as a zero-build static presentation site; the Next.js
+# demo under demo/ is a separate Vercel project rooted at demo/.
+#
+# These entries exist so deploying the root does not drag the ~1.6 GB demo tree
+# along with it, and so Vercel does not detect package.json and try to run the
+# root `build` script, which forwards into demo/ and would fail without it.
+
+demo/
+.git/
+.DS_Store
+scripts/
+AGENTS.md
+package.json
+package-lock.json
