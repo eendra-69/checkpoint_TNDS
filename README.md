@@ -10,7 +10,7 @@ This repository has two halves:
 | `demo/` | The demo app itself — a complete Next.js 16 project | `npm install && npm run dev` |
 
 **Live demo:** https://tasco-tnds-demo.vercel.app
-**GitHub:** https://github.com/jrrqd/tasco-renewal-demo (private)
+**GitHub:** https://github.com/eendra-69/checkpoint_TNDS (private)
 
 Demo links point straight at the live deployment. The local static server still
 maps `demo/…` onto the running dev server, so both halves still behave like one
