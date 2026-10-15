@@ -1,0 +1,9 @@
+# Project-level ignore for the demo app (Vercel Root Directory = demo).
+#
+# It must exist: without a .vercelignore here, Vercel falls back to the one at
+# the repository root, which ignores `demo/` (that one is for deploying the
+# static presentation site) and so strips this whole app from the build.
+
+test-results/
+playwright-report/
+blob-report/
