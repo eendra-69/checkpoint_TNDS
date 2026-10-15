@@ -10,6 +10,7 @@ Use this folder to continue the TASCO TNDS renewal demo without reconstructing c
 | [I18N.md](./I18N.md) | You are adding screens or agent copy |
 | [DEPLOY.md](./DEPLOY.md) | You are committing, pushing, or shipping to Vercel |
 | [CONTINUING.md](./CONTINUING.md) | You are picking up after a context reset |
+| [VERIFICATION.md](./VERIFICATION.md) | You need the per-role scenarios, test results or fix history |
 
 Also:
 

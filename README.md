@@ -10,7 +10,7 @@ This repository has two halves:
 | `demo/` | The demo app itself — a complete Next.js 16 project | `npm install && npm run dev` |
 
 **Live demo:** https://tasco-tnds-demo.vercel.app
-**GitHub:** https://github.com/jrrqd/tasco-renewal-demo (private)
+**GitHub:** https://github.com/jrrqd/tasco-renewal-demo (private, upstream) · checkpoint copy: https://github.com/eendra-69/checkpoint_TNDS
 
 Demo links point straight at the live deployment. The local static server still
 maps `demo/…` onto the running dev server, so both halves still behave like one
@@ -38,10 +38,13 @@ Then open <http://localhost:4321> and click through to the demo.
 ├── scripts/            zero-dependency static server for the site
 ├── docs/               product, architecture and how-to docs
 ├── AGENTS.md           notes for agents working in this repo
+├── CHANGELOG.md        release notes
 └── demo/               the Next.js app
     ├── src/            app router pages, components, lib
     ├── public/         brand art, sprite atlases, 3D room assets
+    ├── e2e/            Playwright end-to-end tests, one spec per role or concern
     ├── scripts/        office asset pipeline
+    ├── playwright.config.ts
     └── docs → see ../docs
 ```
 
@@ -57,17 +60,23 @@ Then open <http://localhost:4321> and click through to the demo.
 | [docs/I18N.md](./docs/I18N.md) | Both | VI/EN cookie, dictionaries, agent language |
 | [docs/DEPLOY.md](./docs/DEPLOY.md) | Both | Vercel, git-author block, env vars |
 | [docs/CONTINUING.md](./docs/CONTINUING.md) | Both | Conventions, known gaps, safe next work |
+| [docs/VERIFICATION.md](./docs/VERIFICATION.md) | Both | Per-role scenarios, test results, fix history (F1–F24) |
+| [CHANGELOG.md](./CHANGELOG.md) | Both | Release notes |
 
 ## Demo path (~3 minutes)
+
+Sign-in is passwordless (`/login`) and lands on the persona's welcome screen `/`,
+except Chị Lan (straight into the AI call) and Anh Tuấn (straight into Classic chat).
 
 1. **Campaign manager** → `/ops` → run renewal campaign
 2. **Anh Minh (customer)** → Virtual Office or Classic chat → confirm → pay → certificate
 3. **Chị Lan (customer)** → `/call/...` → ask for a human
-4. **Telesales** → `/agent` → reveal PII with reason → send renewal link
-5. **Admin** → `/admin` + `/admin/workflow`
-6. **Metrics / Compliance** → funnel + consent/audit
+4. **Anh Tuấn (customer)** → Classic chat → confirm the incomplete vehicle before paying
+5. **Telesales** → `/agent` → reveal PII with reason → send renewal link
+6. **Admin** → `/admin` + `/admin/workflow`
+7. **Metrics / Compliance** → funnel + consent/audit
 
-Header **VI | EN** switches UI language; **Tour** explains the page you are on. Customers move between Home, the Virtual Office and its renewal / claim processes from the sidebar.
+Header **VI | EN** switches UI language (Vietnamese is the default); **Tour** explains the page you are on. Customers move between Home, the Virtual Office and its renewal / claim processes from the sidebar.
 
 ## Stack
 
@@ -84,11 +93,14 @@ Run from the repository root; each one forwards into `demo/`.
 | `npm run build` | Demo production build / typecheck |
 | `npm run start` | Serve the demo production build |
 | `npm run lint` | ESLint over the demo |
-| `npm run typecheck` | `tsc --noEmit` over the demo |
+| `npm run typecheck` | Generate Next route types, then `tsc --noEmit` over the demo |
 | `npm run assets` | Rebuild the 3D room sprite atlases |
 | `npm run setup` | `npm install` inside `demo/` |
 | `npm run test:e2e` | Playwright end-to-end tests (`demo/e2e/`) for every role's scenario; reuses a dev server on `E2E_PORT` (default 3457) or starts one |
 | `npm run test:e2e:report` | Open the last Playwright HTML report |
+
+The e2e tests drive the installed **Microsoft Edge** by default (no browser
+download); set `E2E_CHANNEL=chrome` to use Chrome instead.
 
 ## Deploying
 
