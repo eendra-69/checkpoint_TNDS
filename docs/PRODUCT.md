@@ -21,11 +21,13 @@ This is **not** a licensed insurer platform. Payment, issuance, and claims are s
 
 Defined in `demo/src/lib/rbac.ts`. Sign-in is passwordless (`/login`).
 
-| Persona | Home | Role in the pitch |
-|---------|------|-------------------|
+Signing in lands on the welcome screen `/` (rule 8); the **Main page** is where the persona does its work.
+
+| Persona | Main page | Role in the pitch |
+|---------|-----------|-------------------|
 | Customer — Anh Minh | `/office` | Happy path: high score, VETC-active, complete profile, ~21 days to expiry |
-| Customer — Chị Lan | `/call/cust_lan` | Ignores chat → voice → asks for human |
-| Customer — Anh Tuấn | `/chat/cust_tuan` | Incomplete vehicle; must confirm plate/make in chat ("Cần xác nhận" badge) |
+| Customer — Chị Lan | `/call/cust_lan` (lands here) | Ignores chat → voice → asks for human |
+| Customer — Anh Tuấn | `/chat/cust_tuan` (lands here) | Incomplete vehicle; must confirm plate/make in chat ("Cần xác nhận" badge) |
 | Campaign manager | `/ops` | Scores, campaign, funnel |
 | Telesales | `/agent` | Handover queue, PII reveal-with-reason, renewal link, outcome |
 | Compliance | `/compliance` | Consent ledger + append-only audit (read-only) |

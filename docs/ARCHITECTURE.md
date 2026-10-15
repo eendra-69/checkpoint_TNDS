@@ -78,7 +78,7 @@
 | `llm/resolve.ts` | Gateway / OpenAI / Anthropic / Google / Ollama / LM Studio |
 | `i18n/*` | Locale cookie + dictionaries |
 | `customer-mode.ts` | `tasco-ui-mode` |
-| `onboarding-steps.ts` | First-visit persona intro (once per persona, ends with a pointer to the Tour button) |
+| `onboarding-steps.ts` | Tour step types and the dialog's button labels (VI/EN) |
 | `page-tours.ts` | What each page is for — shown by the header **Tour** button, keyed by route (longest prefix wins) |
 | `masking.ts` / `audit.ts` | PII + append-only log |
 
@@ -109,7 +109,7 @@ All chat clients (Classic `RenewalChat`, office `CsPanel`, `VoiceCall`) call `se
 | `tasco-locale` | `vi` \| `en` (readable by client toggle) |
 | `tasco-ui-mode` | Legacy: `office` (default) \| `classic`. The Classic / Office toggle was removed in v0.2.1, so nothing sets it any more. |
 
-Onboarding completion is **localStorage**, not a cookie.
+The Tour stores nothing: it opens only from the header button, so there is no first-visit state to persist.
 
 ## Seed ids
 

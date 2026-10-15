@@ -14,7 +14,7 @@ Read this file before changing code. Full human/agent docs live in [`docs/`](./d
 
 ## What this repo is
 
-A **pitch demo** of AI-assisted TNDS renewal for BeyondPilot × Tasco. Not a production insurer system. The repository root is the Next.js app (`package.json` lives here).
+A **pitch demo** of AI-assisted TNDS renewal for BeyondPilot × Tasco. Not a production insurer system. The repository root holds the presentation site; the Next.js app lives in `demo/`.
 
 Two halves live here:
 
@@ -23,7 +23,7 @@ Two halves live here:
 | `index.html` + `site.css` + `assets/` | Presentation site. Plain HTML/CSS, no build, no dependencies. Links into `demo/`. |
 | `demo/` | The app. A self-contained Next.js 16 project with its own `package.json`. |
 
-Root `package.json` scripts just forward into `demo/` (`npm run dev`, `build`, `lint`, `typecheck`). `npm run site` serves the presentation site on :4321 with a zero-dependency Node server in `scripts/serve-site.mjs`, which redirects `/demo/…` to the dev server so both behave like one origin locally.
+Root `package.json` scripts just forward into `demo/` (`npm run dev`, `build`, `lint`, `typecheck`, `test:e2e`). `npm run site` serves the presentation site on :4321 with a zero-dependency Node server in `scripts/serve-site.mjs`, which redirects `/demo/…` to the dev server so both behave like one origin locally.
 
 The presentation site deliberately reuses the app's palette and its three typefaces (Outfit / Be Vietnam Pro / VT323) — copy a token from `demo/src/app/globals.css` rather than inventing a new colour.
 
@@ -136,6 +136,7 @@ npm run site      # presentation site, http://localhost:4321 (run separately)
 npm run build     # required after TS/UI changes
 npm run lint
 npm run typecheck
+npm run test:e2e  # Playwright, demo/e2e/ (installed Edge; reuses a dev server on :3457)
 ```
 
 ## Do not
@@ -152,7 +153,8 @@ npm run typecheck
 ## Verify before claiming done
 
 - `npm run build` (TypeScript is part of the production build).
-- `npm run lint` — currently clean except pre-existing `react-hooks/*` compiler warnings in the older 3D/UI components.
+- `npm run lint` — clean (0 errors, 0 warnings); keep it that way.
+- `npm run test:e2e` when you change a role's flow, a route, RBAC or the page tours.
 - If you changed UI, exercise the flow in a browser (customer + at least one staff persona).
 - If you touched a 3D scene, open it in **two tabs** and confirm both avatars appear with the right names.
 - If you changed locale, toggle VI and EN on the pages you touched.

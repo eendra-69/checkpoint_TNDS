@@ -29,7 +29,7 @@ Full change history: [../CHANGELOG.md](../CHANGELOG.md).
 - New user-visible strings: both locales (see [I18N.md](./I18N.md)).
 - Audit meaningful mutations (`appendAudit`).
 - Keep assumptions visible (`Assumption: …`) rather than faking production integrations.
-- Do not add a second global state library; session + cookies + localStorage (onboarding) are enough.
+- Do not add a second global state library; session + cookies are enough.
 - Office copy in `office-copy.ts`; chrome in dictionaries.
 - **Two halves:** the Next app lives in `demo/`, the root is plain static HTML. Do not add a second Next app or a workspace root — one `node_modules`, no surprises.
 - Brand tokens are defined once in `demo/src/app/globals.css`; the root site deliberately reuses those exact values. Change them there first.
@@ -51,8 +51,6 @@ These are real; do not “fix” them by deleting the demo path.
 
 - Connect Upstash on the production project if not already.
 - Add the commit author email to the Vercel team so Git deploys work.
-- Persist office onboarding in the session if judges need a shared machine.
-- Optional: map `permissionOverrides` into `proxy.ts`.
 
 ## How to run a change
 
