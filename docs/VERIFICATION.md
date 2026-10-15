@@ -2,7 +2,7 @@
 
 Scenario per role, checked in the browser. Each step is persona → action → expected.
 
-**Automated:** `npm run test:e2e` runs these scenarios with Playwright (`demo/e2e/`): the full demo journey across roles, Tuấn, Minh (including walking to the CS desk), RBAC for every staff persona, assistant, Tour per page, no overlay on first visit, EN, and mobile width. Each test gets its own browser context, so its own seeded demo session.
+**Automated:** `npm run test:e2e` runs these scenarios with Playwright (`demo/e2e/`): the full demo journey across roles, Tuấn, Minh (including walking to the CS desk), RBAC for every staff persona, assistant, Tour per page, no overlay on first visit, EN, mobile width, display-name validation, presence leave, and the LLM stream path (mocked SSE). Each test gets its own browser context, so its own seeded demo session.
 
 - **Last full run:** 2026-10-14 (round 2), local `next dev`, demo mode (no LLM key), in-memory store, fresh server start. Every role in **VI**, then a reset and every role again in **EN**, then customer views at **375 px**.
 - **Criteria:** hard rules in [PRODUCT.md](./PRODUCT.md), case states, funnel and audit, RBAC, no English UI chrome in VI (generated data excepted).
@@ -128,6 +128,19 @@ Scenario per role, checked in the browser. Each step is persona → action → e
   - F15: Reset demo cleared the permission matrix in the session but the auth cookie kept the old `permOverrides`, so the proxy still blocked the restored route. `resetDemo` re-issues the cookie without overrides.
 - **Result:** lint 0/0, build OK, Playwright 47/47.
 
+## Post-merge audit (2026-10-15)
+
+Manual check of the merged branch (landing, Tour, permission reset, EN) passed. A scripted sweep then signed in as every persona, opened every page it can reach in VI and EN, and recorded console errors, failed requests and page text.
+
+- **Console / network:** no errors; only the `THREE.Clock` deprecation warning from the 3D library.
+- **Language:** fixes F16–F18 below. What stays English in VI on purpose: permission ids on `/admin` (`ops:view`, …), the brand tagline, provider names. What stays Vietnamese in EN: customer names, the moderation sample sentence, chat keywords such as “gia hạn”.
+- **Optimizations:**
+  - zod no longer ships to every page. The display-name rule moved to the dependency-free `demo/src/lib/display-name.ts` (about 145 KB less on every page).
+  - The AI SDK stream parser loads only when an LLM actually streams, so chat and call pages drop from about 250 KB to under 100 KB of page JS.
+  - Presence uses one request per tick: the heartbeat returns the room, so the separate poll is gone.
+- **Second pass** (production build with `next start`, plus a fresh dev server): fixes F21–F23.
+- **Result:** lint 0/0, `npm run typecheck` OK, build OK, Playwright 52/52 (new `robustness.spec.ts`).
+
 ## Fix history
 
 | # | Round | Problem | Fix |
@@ -147,6 +160,15 @@ Scenario per role, checked in the browser. Each step is persona → action → e
 | F13 | 2 | Re-running a campaign reminded customers who had renewed, set Lan back to No response, and doubled the Reminded count. | `campaign.ts` excludes `paid` / `issued` ("already renewed"), applies the Lan demo step only on her first reminder, and counts only newly reminded customers. |
 | F14 | 2 | Default claim note always Vietnamese. | `createClaim` uses the locale cookie. |
 | F15 | merge | Reset demo left stale permission overrides on the auth cookie. | `resetDemo` re-issues the cookie without `permOverrides`. |
+| F16 | audit | Staff sidebar and page titles English in VI (Ops, Compliance, Metrics, Workflow, Admin). | VI dictionary labels. |
+| F17 | audit | English in VI: welcome-screen counters (“0 open”, “21 days”), “N online”, ZNS assumption note, admin status badges, the whole moderation panel, name editor. | Counters as dictionary units (`welcome.unit`); labels passed from the dictionary. |
+| F18 | audit | Raw ids shown to people: “customer” in the sidebar and on lounge nameplates, “· minh” in the persona pill. | `publicName()` (story name or role label) for presence and lounge; persona label and story name in the shell. |
+| F19 | audit | A display name of 1 character or with an emoji crashed sign-in (error page) and made the name editor show raw Zod JSON. | Shared rule checked in the form first (localized message); the server falls back to the persona name on sign-in, and the editor action returns an error code instead of throwing. |
+| F20 | audit | Leaving a 3D world left a ghost avatar for up to 15 s; the client never called the existing leave endpoint. | `DELETE /api/presence` with `keepalive` on unmount and on `pagehide`. |
+| F21 | audit | **Open redirect:** `/login?next=//other-site` sent the user off-site after sign-in (the check accepted any value without a scheme). | `isSafeNextPath` (absolute path, not `//` or `/\`) in the schema, the login page and the sign-in action; an unsafe target is dropped, not an error. |
+| F22 | audit | Signed out, `/office?station=cs` redirected to `/login?station=cs&next=/office`, so the station was lost after sign-in; APIs got a 307 to the HTML login page instead of a status. | The proxy carries path + query in `next` and nothing else; `/api/*` gets 401 / 403 JSON. |
+| F23 | audit | `npm run typecheck` at the root always failed without checking anything (`tsc` ran from the root, which has no tsconfig). | `demo` gets `typecheck: next typegen && tsc --noEmit`; the root script forwards to it. |
+| F24 | audit | VI persona labels and welcome buttons still said Admin, Cán bộ compliance, Mở Ops, Xem Metrics. | Aligned with the sidebar: Quản trị viên, Cán bộ tuân thủ, Mở Vận hành, Xem Chỉ số. |
 
 ## Not covered
 

@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { signInWithForm } from "@/app/actions/auth";
+import { DISPLAY_NAME_MAX, displayNameError } from "@/lib/display-name";
 import { Button } from "@/components/ui/button";
 import type { DemoCustomerId, PersonaId } from "@/lib/types";
 
@@ -19,8 +20,6 @@ export type StaffOption = {
   description: string;
   img: string;
 };
-
-const NAME_MAX = 24;
 
 /**
  * Sign-in is a shared-room demo, so the chosen display name is what other
@@ -42,6 +41,7 @@ export function PersonaPicker({
   locale?: "vi" | "en";
 }) {
   const [displayName, setDisplayName] = useState("");
+  const [touched, setTouched] = useState(false);
 
   // The first customer is the happy path and lands in the Virtual Office, so it
   // doubles as the one-click "enter the spaces" target.
@@ -59,6 +59,12 @@ export function PersonaPicker({
           orPick: "Or explore as another persona",
           customerTitle: "Customer journeys",
           staffTitle: "Staff consoles",
+          placeholder: "e.g. Minh",
+          nameError: {
+            short: "Name must be at least 2 characters",
+            long: "Name must be 24 characters or fewer",
+            chars: "Use letters, numbers, spaces, apostrophes, dots, dashes or underscores",
+          },
         }
       : {
           nameLabel: "Tên của bạn trong không gian ảo",
@@ -70,7 +76,23 @@ export function PersonaPicker({
           orPick: "Hoặc thử persona khác",
           customerTitle: "Hành trình khách hàng",
           staffTitle: "Màn hình nhân viên",
+          placeholder: "VD: Minh",
+          nameError: {
+            short: "Tên cần ít nhất 2 ký tự",
+            long: "Tên tối đa 24 ký tự",
+            chars: "Chỉ dùng chữ, số, khoảng trắng, dấu nháy, dấu chấm, gạch ngang hoặc gạch dưới",
+          },
         };
+
+  // Blank means "use the persona name"; anything typed must pass the same
+  // rule the server applies, or every persona form below is held back.
+  const nameError = displayName.trim() ? displayNameError(displayName.trim()) : null;
+  const guard = (e: React.FormEvent) => {
+    if (!nameError) return;
+    e.preventDefault();
+    setTouched(true);
+    document.getElementById("displayName")?.focus();
+  };
 
   const hidden = (
     <input type="hidden" name="displayName" value={displayName.trim()} />
@@ -83,6 +105,7 @@ export function PersonaPicker({
           customer straight into the Virtual Office. */}
       <form
         action={signInWithForm}
+        onSubmit={guard}
         className="mb-6 rounded-2xl border bg-card p-5 shadow-sm"
       >
         {hidden}
@@ -109,8 +132,11 @@ export function PersonaPicker({
             id="displayName"
             name="displayNameText"
             value={displayName}
-            onChange={(e) => setDisplayName(e.target.value.slice(0, NAME_MAX))}
-            placeholder="e.g. Minh"
+            onChange={(e) => setDisplayName(e.target.value.slice(0, DISPLAY_NAME_MAX))}
+            onBlur={() => setTouched(true)}
+            placeholder={copy.placeholder}
+            aria-invalid={Boolean(nameError && touched)}
+            aria-describedby={nameError && touched ? "displayName-error" : undefined}
             autoComplete="nickname"
             className="w-full max-w-xs rounded-xl border border-border bg-background px-3 py-2.5 text-base text-tasco-ink placeholder:text-muted-foreground/70 focus:border-tasco-lime focus:outline-none focus:ring-2 focus:ring-tasco-lime/30"
           />
@@ -122,6 +148,11 @@ export function PersonaPicker({
             {copy.enter} →
           </Button>
         </div>
+        {nameError && touched && (
+          <p id="displayName-error" role="alert" className="mt-2 text-xs text-red-700">
+            {copy.nameError[nameError]}
+          </p>
+        )}
       </form>
 
       <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -135,6 +166,7 @@ export function PersonaPicker({
               src="/brand/persona-driver.jpg"
               alt=""
               fill
+              loading="eager"
               className="object-cover object-top"
               sizes="(max-width:1024px) 100vw, 55vw"
             />
@@ -147,7 +179,7 @@ export function PersonaPicker({
           </div>
           <div className="space-y-2 p-5 pt-3">
             {customers.map((c) => (
-              <form key={c.key} action={signInWithForm}>
+              <form key={c.key} action={signInWithForm} onSubmit={guard}>
                 {hidden}
                 <input type="hidden" name="persona" value="customer" />
                 <input type="hidden" name="customerKey" value={c.key} />
@@ -175,6 +207,7 @@ export function PersonaPicker({
             <form
               key={p.id}
               action={signInWithForm}
+              onSubmit={guard}
               className="group overflow-hidden rounded-2xl border bg-card shadow-sm transition hover:border-tasco-lime/40"
             >
               {hidden}

@@ -27,6 +27,7 @@ export type WorkshopStation = "advisor" | "claims" | "inspect";
 
 type Copy = {
   hintWalk: string;
+  online: (n: number) => string;
   hintNear: string;
   stations: Record<WorkshopStation, { name: string; prompt: string }>;
 };
@@ -35,6 +36,7 @@ function workshopCopy(locale: "vi" | "en"): Copy {
   if (locale === "en") {
     return {
       hintWalk: "Walk with WASD / arrows · E to interact",
+      online: (n) => `${n} online`,
       hintNear: "Press E",
       stations: {
         advisor: {
@@ -54,6 +56,7 @@ function workshopCopy(locale: "vi" | "en"): Copy {
   }
   return {
     hintWalk: "Di chuyển bằng WASD / phím mũi tên · E để tương tác",
+    online: (n) => `${n} đang online`,
     hintNear: "Nhấn E",
     stations: {
       advisor: {
@@ -107,7 +110,7 @@ export function WorkshopExperience({
     if (id === "advisor" || id === "claims" || id === "inspect") {
       setActive(id);
     }
-  }, []);
+  }, [setActive]);
 
   const nearCopy = near ? t.stations[near.id as WorkshopStation] : null;
 
@@ -116,7 +119,7 @@ export function WorkshopExperience({
       <WorldTopBar
         labels={worldLabels}
         hint={nearCopy && !active ? nearCopy.prompt : t.hintWalk}
-        online={connected ? `${others.length + 1} online` : "…"}
+        online={connected ? t.online(others.length + 1) : "…"}
       />
 
       <div className="absolute inset-0">

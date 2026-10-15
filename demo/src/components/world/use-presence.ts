@@ -4,8 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { Facing, PresenceUser, WorldSceneId } from "@/lib/types";
 import { PRESENCE_TTL_MS } from "@/lib/presence";
 
+/** One request per tick: the heartbeat response carries the room. */
 const BEAT_MS = 2_000;
-const POLL_MS = 2_000;
 
 /**
  * Stable per-tab id. sessionStorage (not localStorage) so two tabs of the same
@@ -53,37 +53,39 @@ export function usePresence(scene: WorldSceneId, enabled = true) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ userId: selfId, scene, x, z, facing }),
         });
-        if (!cancelled && res.ok) setConnected(true);
-      } catch {
-        if (!cancelled) setConnected(false);
-      }
-    }
-
-    async function poll() {
-      try {
-        const res = await fetch(`/api/presence?scene=${scene}`, {
-          cache: "no-store",
-        });
-        if (!res.ok || cancelled) return;
+        if (cancelled) return;
+        setConnected(res.ok);
+        if (!res.ok) return;
         const data = (await res.json()) as { users?: PresenceUser[] };
         if (!cancelled) setUsers(data.users ?? []);
       } catch {
         // Offline is fine; the next tick retries.
+        if (!cancelled) setConnected(false);
       }
     }
 
+    // Leave the room now rather than lingering as a ghost until the record
+    // expires (PRESENCE_TTL_MS). `keepalive` lets the request outlive the page.
+    function leave() {
+      void fetch("/api/presence", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: selfId, scene }),
+        keepalive: true,
+      }).catch(() => {});
+    }
+
     beat();
-    poll();
     const beatTimer = window.setInterval(beat, BEAT_MS);
-    const pollTimer = window.setInterval(poll, POLL_MS);
+    // Effect cleanup covers in-app navigation; a full page load or closing the
+    // tab unloads the document without running it, so listen for that too.
+    window.addEventListener("pagehide", leave);
 
     return () => {
       cancelled = true;
       window.clearInterval(beatTimer);
-      window.clearInterval(pollTimer);
-      // No explicit "leave" here: sendBeacon can only POST, so it would post a
-      // heartbeat-shaped body that fails validation and quietly do nothing.
-      // Presence records instead expire on their own after PRESENCE_TTL_MS.
+      window.removeEventListener("pagehide", leave);
+      leave();
     };
   }, [scene, enabled, selfId]);
 

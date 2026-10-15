@@ -1,4 +1,9 @@
 import { z } from "zod";
+import {
+  DISPLAY_NAME_MAX,
+  DISPLAY_NAME_MIN,
+  DISPLAY_NAME_PATTERN,
+} from "@/lib/display-name";
 
 /**
  * Shared request validation.
@@ -23,19 +28,24 @@ export const FACINGS = ["down", "left", "right", "up"] as const;
 
 export const SCENE_IDS = ["office", "workshop", "lounge"] as const;
 
-/**
- * Display names render as nameplates above avatars in all three 3D scenes, so
- * keep them short, printable, and free of markup.
- */
+/** Zod form of the rule in `display-name.ts` (kept zod-free for client bundles). */
 export const displayNameSchema = z
   .string()
   .trim()
-  .min(2, "Name must be at least 2 characters")
-  .max(24, "Name must be 24 characters or fewer")
+  .min(DISPLAY_NAME_MIN, "Name must be at least 2 characters")
+  .max(DISPLAY_NAME_MAX, "Name must be 24 characters or fewer")
   .regex(
-    /^[\p{L}\p{N} _.'-]+$/u,
+    DISPLAY_NAME_PATTERN,
     "Use letters, numbers, spaces, apostrophes, dots, dashes or underscores",
   );
+
+/**
+ * Only same-origin absolute paths, so a `next` redirect target can't send
+ * anyone off-site: "//host" and "/\host" are protocol-relative to a browser.
+ */
+export function isSafeNextPath(value: string): boolean {
+  return /^\/(?![/\\])/.test(value);
+}
 
 export const SignInSchema = z.object({
   persona: z.enum(PERSONA_IDS),
@@ -43,11 +53,7 @@ export const SignInSchema = z.object({
   next: z
     .string()
     .optional()
-    // Only same-origin relative paths, so `next` can't be used as an open redirect.
-    .refine(
-      (v) => !v || (v.startsWith("/") && !v.startsWith("//")) || !/^[a-z]+:/i.test(v),
-      "Invalid redirect target",
-    ),
+    .refine((v) => !v || isSafeNextPath(v), "Invalid redirect target"),
   displayName: displayNameSchema.optional(),
 });
 

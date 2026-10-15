@@ -5,6 +5,9 @@ import type { PersonaId } from "../src/lib/types";
 export { expect };
 
 const vi = dictionaries.vi;
+const en = dictionaries.en;
+
+const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 export type Who = "minh" | "lan" | "tuan" | Exclude<PersonaId, "customer">;
 
@@ -32,7 +35,14 @@ export async function signIn(page: Page, who: Who) {
       ? page.getByRole("button", { name: new RegExp(CUSTOMER_LABEL[who as keyof typeof CUSTOMER_LABEL]) })
       : page
           .locator("form")
-          .filter({ has: page.getByRole("heading", { name: vi.personas[who as PersonaId].label, exact: true }) })
+          // Either UI language: the login page follows the locale cookie.
+          .filter({
+            has: page.getByRole("heading", {
+              name: new RegExp(
+                `^(${escape(vi.personas[who as PersonaId].label)}|${escape(en.personas[who as PersonaId].label)})$`,
+              ),
+            }),
+          })
           .getByRole("button");
   await button.click();
   await page.waitForURL((url) => !url.pathname.startsWith("/login"));

@@ -22,6 +22,7 @@ import type { PersonaId } from "@/lib/types";
 import { usingMemoryStore } from "@/lib/session";
 import { getLocale } from "@/lib/i18n/locale";
 import { getDictionary } from "@/lib/i18n/dictionaries";
+import { format } from "@/lib/i18n/t";
 
 export default async function AdminPage() {
   const auth = await requirePermission("settings:manage");
@@ -39,16 +40,16 @@ export default async function AdminPage() {
       <div className="mb-4 flex flex-wrap gap-2">
         <Badge tone="green">v{pkg.version}</Badge>
         <Badge tone={encryptionAvailable() ? "green" : "warn"}>
-          Secrets: {encryptionAvailable() ? "encrypted at rest" : "NOT encrypted (no SETTINGS_SECRET)"}
+          {format(t.secrets, { state: encryptionAvailable() ? t.secretsOn : t.secretsOff })}
         </Badge>
         <Badge tone={usingMemoryStore() ? "warn" : "green"}>
           {t.store}: {usingMemoryStore() ? t.inMemory : "Upstash Redis"}
         </Badge>
         <Badge tone={usingMemoryPresence() ? "warn" : "green"}>
-          Presence: {usingMemoryPresence() ? "in-memory (single instance)" : "Upstash Redis"}
+          {format(t.presence, { state: usingMemoryPresence() ? t.presenceMemory : "Upstash Redis" })}
         </Badge>
         <Badge tone={usingMemoryAudit() ? "warn" : "green"}>
-          Audit: {usingMemoryAudit() ? "in-memory (not tamper-evident)" : "append-only Redis"}
+          {format(t.audit, { state: usingMemoryAudit() ? t.auditMemory : t.auditRedis })}
         </Badge>
         <Link href="/admin/workflow">
           <Badge tone="sky">{t.openWorkflow}</Badge>
@@ -169,7 +170,7 @@ export default async function AdminPage() {
       </section>
 
       <div className="mt-6">
-        <ModerationPanel initial={await getModeration()} />
+        <ModerationPanel initial={await getModeration()} labels={dict.moderation} />
       </div>
 
       <section className="mt-6 rounded-2xl border bg-card p-5 shadow-sm">

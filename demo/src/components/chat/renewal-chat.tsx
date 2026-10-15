@@ -15,6 +15,7 @@ type ChatLabels = {
   emptyReply: string;
   errorPrefix: string;
   networkError: string;
+  assumption: string;
   classic: string;
   profileOk: string;
   needsConfirm: string;
@@ -138,7 +139,7 @@ export function RenewalChat({
           <div className="flex h-[540px] flex-col bg-[#ebeff5]">
             <div className="flex-1 space-y-2 overflow-y-auto p-3">
               <div className="rounded-xl border border-dashed border-tasco-lime/40 bg-white/80 p-2 text-[11px] text-muted-foreground">
-                Assumption: Zalo ZNS template + OA chat
+                {labels.assumption}
               </div>
               {messages.map((m) => (
                 <div

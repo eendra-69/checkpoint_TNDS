@@ -1,18 +1,28 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { z } from "zod";
 import { setAuthCookie, clearAuthCookie, getAuth } from "@/lib/auth";
 import { getOrCreateSession, resetSession } from "@/lib/session";
 import { appendAudit } from "@/lib/audit";
 import { saveSession } from "@/lib/session";
 import { PERSONAS } from "@/lib/rbac";
-import { SignInSchema, displayNameSchema, type SignInInput } from "@/lib/validation";
+import { SignInSchema, isSafeNextPath, type SignInInput } from "@/lib/validation";
+import { displayNameError, type DisplayNameError } from "@/lib/display-name";
 import type { PersonaId } from "@/lib/types";
 import { nanoid } from "nanoid";
 
-export async function setDisplayName(raw: { displayName: string }) {
-  const input = z.object({ displayName: displayNameSchema }).parse(raw);
+/**
+ * Returns the rejection reason instead of throwing, so the editor can show it
+ * in the UI language (a thrown error reaches production clients as a generic
+ * "Server Components render" message).
+ */
+export async function setDisplayName(raw: {
+  displayName: string;
+}): Promise<{ error: DisplayNameError } | { error: null }> {
+  const displayName = String(raw?.displayName ?? "").trim();
+  const error = displayNameError(displayName);
+  if (error) return { error };
+  const input = { displayName };
   const auth = await getAuth();
   if (!auth) redirect("/login");
 
@@ -33,6 +43,7 @@ export async function setDisplayName(raw: { displayName: string }) {
     displayName: input.displayName,
     permOverrides: auth.permOverrides,
   });
+  return { error: null };
 }
 
 export async function signInAs(raw: unknown) {
@@ -45,9 +56,14 @@ export async function signInAs(raw: unknown) {
  * action reassembles them before delegating to `startSignIn`.
  */
 export async function signInWithForm(formData: FormData) {
-  const displayName = String(formData.get("displayName") ?? "").trim();
+  const typed = String(formData.get("displayName") ?? "").trim();
+  // The picker blocks an invalid name before submit; if one still arrives,
+  // sign in under the persona name rather than failing the whole sign-in.
+  const displayName = typed && !displayNameError(typed) ? typed : "";
   const customerKey = String(formData.get("customerKey") ?? "");
-  const next = String(formData.get("next") ?? "");
+  // Same for a tampered redirect target: drop it and land as usual.
+  const rawNext = String(formData.get("next") ?? "");
+  const next = isSafeNextPath(rawNext) ? rawNext : "";
 
   return startSignIn(
     SignInSchema.parse({

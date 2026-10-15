@@ -9,7 +9,7 @@
     "build": "npm --prefix demo run build",
     "start": "npm --prefix demo run start",
     "lint": "npm --prefix demo run lint",
-    "typecheck": "npm --prefix demo exec -- tsc --noEmit",
+    "typecheck": "npm --prefix demo run typecheck",
     "assets": "npm --prefix demo run office:assets",
     "setup": "npm --prefix demo install",
     "test:e2e": "npm --prefix demo run test:e2e",

@@ -4,6 +4,7 @@ const copy = {
   vi: {
     loading: "Đang vào Virtual Office…",
     hintWalk: "WASD / phím mũi tên để đi · E để nói chuyện",
+    online: (n: number) => `${n} đang online`,
     hintNear: "Nhấn E / A để nói chuyện",
     touchA: "A",
     stations: {
@@ -54,6 +55,7 @@ const copy = {
   en: {
     loading: "Entering Virtual Office…",
     hintWalk: "WASD / arrows to walk · E to talk",
+    online: (n: number) => `${n} online`,
     hintNear: "Press E / A to talk",
     touchA: "A",
     stations: {

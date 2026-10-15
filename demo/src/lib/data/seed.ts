@@ -353,6 +353,9 @@ export function createSeedSession(sessionId: string): DemoSession {
 
 export const DEMO_CUSTOMER_KEYS = ["minh", "lan", "tuan"] as const;
 
+/** How the story names each demo customer; proper names, the same in VI and EN. */
+export const DEMO_CUSTOMER_NAMES = { minh: "Anh Minh", lan: "Chị Lan", tuan: "Anh Tuấn" } as const;
+
 export function getDemoCustomerId(key: "minh" | "lan" | "tuan"): string {
   return DEMO_CUSTOMERS[key].customer.id;
 }

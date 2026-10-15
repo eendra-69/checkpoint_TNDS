@@ -1,10 +1,4 @@
-import {
-  parseJsonEventStream,
-  readUIMessageStream,
-  uiMessageChunkSchema,
-  type UIMessage,
-  type UIMessageChunk,
-} from "ai";
+import type { UIMessage, UIMessageChunk } from "ai";
 import type { CHAT_CHANNELS } from "@/lib/types";
 
 export type ChatTurn = { id: string; role: "assistant" | "user"; content: string };
@@ -84,6 +78,10 @@ export async function sendRenewalChat({
   if (!res.ok || !res.body) {
     throw new ChatRequestError(res.statusText || `HTTP ${res.status}`);
   }
+
+  // Loaded only here: demo mode (no LLM key) never streams, so pages that chat
+  // don't pay for the AI SDK's stream parser (and the zod it brings) up front.
+  const { parseJsonEventStream, readUIMessageStream, uiMessageChunkSchema } = await import("ai");
 
   let streamError: string | undefined;
   const chunks = parseJsonEventStream({

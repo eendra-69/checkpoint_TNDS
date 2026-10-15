@@ -4,10 +4,18 @@ import { useState, useTransition } from "react";
 import { moderate } from "@/lib/moderation";
 import type { ModerationSettings } from "@/lib/types";
 import { saveModerationSettings } from "@/app/actions/admin";
+import { format } from "@/lib/i18n/t";
+import type { Dictionary } from "@/lib/i18n/dictionaries";
 
 const SAMPLE = "Xin chào, tôi cần hỏi về bảo hiểm đ*m cho xe của mình";
 
-export function ModerationPanel({ initial }: { initial: ModerationSettings }) {
+export function ModerationPanel({
+  initial,
+  labels: t,
+}: {
+  initial: ModerationSettings;
+  labels: Dictionary["moderation"];
+}) {
   const [enabled, setEnabled] = useState(initial.enabled);
   const [badwordsText, setBadwordsText] = useState(initial.badwords.join("\n"));
   const [maskChar, setMaskChar] = useState(initial.maskChar || "*");
@@ -39,14 +47,14 @@ export function ModerationPanel({ initial }: { initial: ModerationSettings }) {
         setStatus({
           tone: "ok",
           text:
-            `Saved · ${res.count} term(s)` +
+            format(t.saved, { n: res.count }) +
             (res.added.length ? ` · +${res.added.join(", ")}` : "") +
             (res.removed.length ? ` · −${res.removed.join(", ")}` : ""),
         });
       } catch (e) {
         setStatus({
           tone: "err",
-          text: e instanceof Error ? e.message : "Could not save",
+          text: e instanceof Error ? e.message : t.failed,
         });
       }
     });
@@ -56,15 +64,9 @@ export function ModerationPanel({ initial }: { initial: ModerationSettings }) {
     <section className="rounded-2xl border bg-card p-5 shadow-sm">
       <header className="mb-3">
         <h2 className="font-display text-lg font-semibold text-tasco-ink">
-          Lounge chat moderation
+          {t.title}
         </h2>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Badwords are masked server-side before a message is stored, so the
-          client can never bypass the filter. Matching ignores Vietnamese
-          diacritics and tolerates separators inside a word (<code>đ*m</code>,
-          <code> f.u.c.k </code>). Terms of 3 characters or fewer only match on
-          word boundaries, so <code>vl</code> will not censor <code>vlog</code>.
-        </p>
+        <p className="mt-1 text-xs text-muted-foreground">{t.body}</p>
       </header>
 
       <div className="grid gap-4 sm:grid-cols-[1fr_auto]">
@@ -73,7 +75,7 @@ export function ModerationPanel({ initial }: { initial: ModerationSettings }) {
             htmlFor="badwords"
             className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
           >
-            Badword list ({termCount}) — one per line
+            {format(t.list, { n: termCount })}
           </label>
           <textarea
             id="badwords"
@@ -93,7 +95,7 @@ export function ModerationPanel({ initial }: { initial: ModerationSettings }) {
               onChange={(e) => setEnabled(e.target.checked)}
               className="h-4 w-4 accent-tasco-lime"
             />
-            Enabled
+            {t.enabled}
           </label>
           <label className="flex items-center gap-2 text-sm text-tasco-ink">
             <input
@@ -102,14 +104,14 @@ export function ModerationPanel({ initial }: { initial: ModerationSettings }) {
               onChange={(e) => setLogToAudit(e.target.checked)}
               className="h-4 w-4 accent-tasco-lime"
             />
-            Log to audit
+            {t.logToAudit}
           </label>
           <div>
             <label
               htmlFor="maskChar"
               className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
             >
-              Mask character
+              {t.maskChar}
             </label>
             <input
               id="maskChar"
@@ -124,23 +126,23 @@ export function ModerationPanel({ initial }: { initial: ModerationSettings }) {
             disabled={pending}
             className="w-full rounded-xl bg-tasco-leaf px-3 py-2 text-sm font-semibold text-white transition hover:bg-tasco-lime disabled:opacity-50"
           >
-            {pending ? "Saving…" : "Save"}
+            {pending ? t.saving : t.save}
           </button>
         </div>
       </div>
 
       <div className="mt-4 rounded-xl border border-dashed bg-tasco-mist/40 p-3">
         <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          Live preview
+          {t.preview}
         </div>
         <div className="mt-2 rounded-lg bg-white px-3 py-2 text-sm text-tasco-ink">
           {preview.masked}
         </div>
         <p className="mt-1.5 text-[11px] text-muted-foreground">
           {preview.clean
-            ? "No terms matched this sample."
-            : `Matched: ${preview.matched.join(", ")}`}
-          {enabled ? "" : " · moderation is currently off"}
+            ? t.noMatch
+            : format(t.matched, { terms: preview.matched.join(", ") })}
+          {enabled ? "" : t.off}
         </p>
       </div>
 

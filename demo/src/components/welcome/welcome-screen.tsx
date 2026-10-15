@@ -10,7 +10,12 @@ import type {
   WelcomeMetric,
   WelcomeModel,
   WelcomeTask,
+  WelcomeText,
 } from "@/lib/welcome";
+
+function text(dict: Dictionary, value: WelcomeText): string {
+  return typeof value === "string" ? value : t(dict, `welcome.unit.${value.unit}`, { n: value.n ?? 0 });
+}
 
 /**
  * Persona landing screen reached from the sidebar Home button.
@@ -32,10 +37,12 @@ const TONE_BAR: Record<NonNullable<WelcomeMetric["tone"]>, string> = {
 
 function MetricCard({
   metric,
+  value,
   label,
   hint,
 }: {
   metric: WelcomeMetric;
+  value: string;
   label: string;
   hint?: string;
 }) {
@@ -47,7 +54,7 @@ function MetricCard({
         {label}
       </div>
       <div className="mt-1 font-display text-2xl font-semibold tabular-nums text-tasco-ink">
-        {metric.value}
+        {value}
       </div>
       {hint && <div className="mt-0.5 text-xs text-muted-foreground">{hint}</div>}
       {metric.progress !== undefined && (
@@ -70,7 +77,7 @@ const TASK_STYLE = {
   todo: "border-border bg-card text-muted-foreground",
 } as const;
 
-function TaskRow({ task, label }: { task: WelcomeTask; label: string }) {
+function TaskRow({ task, label, meta }: { task: WelcomeTask; label: string; meta?: string }) {
   const Icon = TASK_ICON[task.state];
   const body = (
     <>
@@ -85,9 +92,9 @@ function TaskRow({ task, label }: { task: WelcomeTask; label: string }) {
         />
       </span>
       <span className="min-w-0 flex-1 truncate text-sm font-medium">{label}</span>
-      {task.meta && (
+      {meta && (
         <span className="shrink-0 font-mono text-xs tabular-nums text-muted-foreground">
-          {task.meta}
+          {meta}
         </span>
       )}
     </>
@@ -217,6 +224,7 @@ export function WelcomeScreen({
             <MetricCard
               key={m.id}
               metric={m}
+              value={text(dict, m.value)}
               label={label("metrics", m.id)}
               hint={m.hint ? t(dict, `welcome.hint.${persona}.${m.id}`, vars) : undefined}
             />
@@ -235,6 +243,7 @@ export function WelcomeScreen({
                 key={task.id}
                 task={task}
                 label={label("tasks", task.id)}
+                meta={task.meta === undefined ? undefined : text(dict, task.meta)}
               />
             ))}
           </div>

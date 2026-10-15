@@ -50,8 +50,8 @@ const PAGE_TOURS: Record<string, PageTour> = {
       {
         id: "login-staff",
         title: "Nhân viên",
-        body: "Quản lý chiến dịch (chấm điểm, chiến dịch), Telesales (bàn giao), Compliance (consent, audit), Lãnh đạo (số liệu), Admin (cài đặt, quyền, workflow).",
-        hint: "Thứ tự gợi ý: Quản lý chiến dịch → Anh Minh → Chị Lan → Telesales → Admin.",
+        body: "Quản lý chiến dịch (chấm điểm, chiến dịch), Telesales (bàn giao), Tuân thủ (consent, audit), Lãnh đạo (số liệu), Quản trị viên (cài đặt, quyền, quy trình).",
+        hint: "Thứ tự gợi ý: Quản lý chiến dịch → Anh Minh → Chị Lan → Telesales → Quản trị viên.",
       },
     ],
     en: [
@@ -511,7 +511,7 @@ const PAGE_TOURS: Record<string, PageTour> = {
       {
         id: "lounge-moderation",
         title: "Kiểm duyệt",
-        body: "Tin nhắn công khai được kiểm duyệt từ; Admin xem và xử lý tin bị chặn ở trang Admin.",
+        body: "Tin nhắn công khai được kiểm duyệt từ; Quản trị viên xem và xử lý tin bị chặn ở trang Quản trị.",
       },
     ],
     en: [

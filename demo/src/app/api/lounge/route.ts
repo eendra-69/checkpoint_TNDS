@@ -4,6 +4,7 @@ import { hasPermission } from "@/lib/rbac";
 import { getOrCreateSession } from "@/lib/session";
 import { consume } from "@/lib/rate-limit";
 import { listMessages, postMessage } from "@/lib/lounge";
+import { publicName } from "@/lib/public-name";
 
 const MessageSchema = z.object({
   text: z.string().trim().min(1).max(500),
@@ -50,7 +51,7 @@ export async function POST(req: Request) {
 
   const { message, moderated } = await postMessage({
     text: parsed.data.text,
-    name: auth.displayName?.trim() || auth.persona,
+    name: publicName(auth),
     persona: auth.persona,
   });
 

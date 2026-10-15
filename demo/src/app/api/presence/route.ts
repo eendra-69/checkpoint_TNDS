@@ -4,6 +4,7 @@ import { hasPermission } from "@/lib/rbac";
 import { getOrCreateSession } from "@/lib/session";
 import { consume } from "@/lib/rate-limit";
 import { heartbeat, listPresence, leave } from "@/lib/presence";
+import { publicName } from "@/lib/public-name";
 
 const SceneSchema = z.enum(["office", "workshop", "lounge"]);
 
@@ -15,9 +16,6 @@ const BeatSchema = z.object({
   facing: z.enum(["down", "left", "right", "up"]),
 });
 
-function displayNameFor(auth: Awaited<ReturnType<typeof getAuth>>) {
-  return auth?.displayName?.trim() || auth?.persona || "Guest";
-}
 
 export async function GET(req: Request) {
   const auth = await getAuth();
@@ -56,7 +54,7 @@ export async function POST(req: Request) {
 
   const user = await heartbeat({
     userId,
-    name: displayNameFor(auth),
+    name: publicName(auth),
     persona: auth.persona,
     scene,
     x,
@@ -64,7 +62,10 @@ export async function POST(req: Request) {
     facing,
   });
 
-  return Response.json({ user });
+  // The room comes back with the heartbeat, so a client needs one request per
+  // tick instead of a heartbeat plus a separate poll.
+  const users = await listPresence(scene);
+  return Response.json({ user, users });
 }
 
 export async function DELETE(req: Request) {

@@ -135,7 +135,7 @@ export function OfficeExperience({
       <WorldTopBar
         labels={worldLabels}
         hint={nearCopy && !active ? nearCopy.prompt : t.hintWalk}
-        online={connected ? `${others.length + 1} online` : "…"}
+        online={connected ? t.online(others.length + 1) : "…"}
       />
 
       {nearCopy && !active && !onboarding?.locksOffice && (

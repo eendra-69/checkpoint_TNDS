@@ -18,7 +18,7 @@ test.describe("Guest (signed out)", () => {
     for (const name of ["Anh Minh", "Chị Lan", "Anh Tuấn"]) {
       await expect(page.getByRole("button", { name: new RegExp(name) })).toBeVisible();
     }
-    for (const role of ["Nhân viên telesales", "Quản lý chiến dịch", "Cán bộ compliance", "Lãnh đạo kinh doanh", "Admin"]) {
+    for (const role of ["Nhân viên telesales", "Quản lý chiến dịch", "Cán bộ tuân thủ", "Lãnh đạo kinh doanh", "Quản trị viên"]) {
       await expect(page.getByRole("heading", { name: role, exact: true })).toBeVisible();
     }
   });

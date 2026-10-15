@@ -29,10 +29,18 @@ export async function proxy(request: NextRequest) {
   const token = request.cookies.get(COOKIE_NAME)?.value;
   const auth = token ? await verifyAuth(token) : null;
 
+  // API callers are fetch()es, not people: answer with a status they can act
+  // on instead of a redirect to an HTML page.
+  const isApi = pathname.startsWith("/api/");
+
   if (!auth) {
+    if (isApi) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const url = request.nextUrl.clone();
     url.pathname = "/login";
-    url.searchParams.set("next", pathname);
+    // Carry the full target (e.g. /office?station=cs) in `next`, and nothing
+    // else: the original query belongs to the page, not to /login.
+    url.search = "";
+    url.searchParams.set("next", pathname + request.nextUrl.search);
     return NextResponse.redirect(url);
   }
 
@@ -45,8 +53,10 @@ export async function proxy(request: NextRequest) {
     // look like it did nothing.
     const perms = resolvePermissions(auth.persona, auth.permOverrides);
     if (!perms.includes(needed)) {
+      if (isApi) return NextResponse.json({ error: "Forbidden", need: needed }, { status: 403 });
       const url = request.nextUrl.clone();
       url.pathname = "/forbidden";
+      url.search = "";
       url.searchParams.set("need", needed);
       return NextResponse.redirect(url);
     }

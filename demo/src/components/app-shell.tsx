@@ -71,8 +71,9 @@ export async function AppShell({
         profile={
           auth ? (
             <DisplayNameEditor
-              persona={auth.persona}
+              persona={dict.personas[auth.persona].label}
               displayName={auth.displayName}
+              labels={dict.displayName}
             />
           ) : null
         }

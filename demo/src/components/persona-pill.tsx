@@ -3,6 +3,7 @@ import { PERSONAS } from "@/lib/rbac";
 import type { AuthCookie } from "@/lib/auth-token";
 import { resetDemo, signOut } from "@/app/actions/auth";
 import { Button } from "@/components/ui/button";
+import { DEMO_CUSTOMER_NAMES } from "@/lib/data/seed";
 
 export function PersonaPill({
   auth,
@@ -22,7 +23,9 @@ export function PersonaPill({
       >
         <span className="h-2 w-2 rounded-full bg-tasco-lime" />
         {personaLabel ?? persona.label}
-        {auth.customerId ? ` · ${auth.customerId}` : ""}
+        {auth.customerId
+          ? ` · ${DEMO_CUSTOMER_NAMES[auth.customerId as keyof typeof DEMO_CUSTOMER_NAMES] ?? auth.customerId}`
+          : ""}
         <span className="opacity-70">{labels?.switch ?? "Switch"}</span>
       </Link>
       <form action={resetDemo}>

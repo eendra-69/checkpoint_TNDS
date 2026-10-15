@@ -5,10 +5,11 @@ import {
   type StaffOption,
 } from "@/components/login/persona-picker";
 import { PERSONAS } from "@/lib/rbac";
-import { getDemoCustomerId } from "@/lib/data/seed";
+import { DEMO_CUSTOMER_NAMES, getDemoCustomerId } from "@/lib/data/seed";
 import type { PersonaId } from "@/lib/types";
 import { getLocale } from "@/lib/i18n/locale";
 import { getDictionary } from "@/lib/i18n/dictionaries";
+import { isSafeNextPath } from "@/lib/validation";
 
 const STAFF_IMG: Partial<Record<PersonaId, string>> = {
   campaign_manager: "/brand/persona-ops.jpg",
@@ -23,22 +24,24 @@ export default async function LoginPage({
 }: {
   searchParams: Promise<{ next?: string }>;
 }) {
-  const { next } = await searchParams;
+  const { next: rawNext } = await searchParams;
+  // A target that could leave the site is dropped before it reaches any form.
+  const next = rawNext && isSafeNextPath(rawNext) ? rawNext : undefined;
   const locale = await getLocale();
   const dict = getDictionary(locale);
 
   const customers: CustomerOption[] = [
-    { key: "minh", label: "Anh Minh", blurb: dict.demoCustomers.minh },
+    { key: "minh", label: DEMO_CUSTOMER_NAMES.minh, blurb: dict.demoCustomers.minh },
     {
       key: "lan",
-      label: "Chị Lan",
+      label: DEMO_CUSTOMER_NAMES.lan,
       blurb: dict.demoCustomers.lan,
       path: `/call/${getDemoCustomerId("lan")}`,
     },
     // Tuấn's story is confirming incomplete vehicle data; Classic chat shows the "needs confirmation" badge.
     {
       key: "tuan",
-      label: "Anh Tuấn",
+      label: DEMO_CUSTOMER_NAMES.tuan,
       blurb: dict.demoCustomers.tuan,
       path: `/chat/${getDemoCustomerId("tuan")}`,
     },

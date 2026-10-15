@@ -24,17 +24,26 @@ export const BASELINE_RENEWAL_RATE = 0.28;
 
 export type TaskState = "done" | "active" | "todo";
 
+/** Count words rendered from `welcome.unit.<unit>` (`{n}` = the count). */
+export type WelcomeUnit =
+  | "leads" | "chats" | "clear" | "total" | "high" | "runs" | "lapsed"
+  | "needInfo" | "open" | "events" | "claims" | "posts" | "days" | "expired"
+  | "intact" | "aged";
+
+/** A figure the screen shows: plain digits as-is, words through the dictionary. */
+export type WelcomeText = string | { unit: WelcomeUnit; n?: number };
+
 export type WelcomeTask = {
   id: string;
   state: TaskState;
   /** Count or short qualifier rendered next to the task, e.g. "3 leads". */
-  meta?: string;
+  meta?: WelcomeText;
   href?: string;
 };
 
 export type WelcomeMetric = {
   id: string;
-  value: string;
+  value: WelcomeText;
   /** Optional qualifier under the value, e.g. "this session". */
   hint?: string;
   /** Fraction 0..1 for the progress meter; omit for non-progress figures. */
@@ -181,7 +190,7 @@ function customerModel(
   if (policy) {
     metrics.push({
       id: "policy",
-      value: daysLeft !== null && daysLeft >= 0 ? `${daysLeft} days` : "expired",
+      value: daysLeft !== null && daysLeft >= 0 ? { unit: "days", n: daysLeft } : { unit: "expired" },
       hint: `${policy.product} · ${formatVnd(policy.premiumVnd)}`,
       tone: daysLeft !== null && daysLeft < 30 ? "warn" : "leaf",
     });
@@ -294,19 +303,19 @@ function telesalesModel(session: DemoSession): WelcomeModel {
       {
         id: "callbacks",
         state: callbacks > 0 ? "active" : "done",
-        meta: callbacks > 0 ? `${callbacks} leads` : "clear",
+        meta: callbacks > 0 ? { unit: "leads", n: callbacks } : { unit: "clear" },
         href: "/agent",
       },
       {
         id: "openThreads",
         state: openThreads > 0 ? "active" : "done",
-        meta: openThreads > 0 ? `${openThreads} chats` : "clear",
+        meta: openThreads > 0 ? { unit: "chats", n: openThreads } : { unit: "clear" },
         href: "/agent",
       },
       {
         id: "handover",
         state: cases.renewed.length > 0 ? "done" : "todo",
-        meta: `${session.handovers.length} total`,
+        meta: { unit: "total", n: session.handovers.length },
         href: "/agent",
       },
       {
@@ -373,19 +382,19 @@ function campaignModel(session: DemoSession): WelcomeModel {
       {
         id: "reviewScores",
         state: high > 0 ? "active" : "done",
-        meta: `${high} high`,
+        meta: { unit: "high", n: high },
         href: "/ops",
       },
       {
         id: "runCampaign",
         state: session.campaigns.length > 0 ? "done" : "todo",
-        meta: `${session.campaigns.length} runs`,
+        meta: { unit: "runs", n: session.campaigns.length },
         href: "/ops",
       },
       {
         id: "chaseLapsed",
         state: cases.lapsed.length > 0 ? "active" : "done",
-        meta: `${cases.lapsed.length} lapsed`,
+        meta: { unit: "lapsed", n: cases.lapsed.length },
         href: "/ops",
       },
     ],
@@ -423,7 +432,7 @@ function complianceModel(
       { id: "auditEvents", value: String(auditTotal), hint: "ledger events", tone: "lime" },
       {
         id: "ledgerHealth",
-        value: auditDropped === 0 ? "Intact" : `${auditDropped} aged`,
+        value: auditDropped === 0 ? { unit: "intact" } : { unit: "aged", n: auditDropped },
         hint: "append-only, oldest trimmed",
         tone: auditDropped === 0 ? "vetc" : "warn",
       },
@@ -435,16 +444,16 @@ function complianceModel(
       {
         id: "reviewClaims",
         state: claims.some((c) => c.status === "need_info") ? "active" : "done",
-        meta: `${claims.filter((c) => c.status === "need_info").length} need info`,
+        meta: { unit: "needInfo", n: claims.filter((c) => c.status === "need_info").length },
         href: "/compliance",
       },
       {
         id: "closeEscalations",
         state: openHandovers > 0 ? "active" : "done",
-        meta: `${openHandovers} open`,
+        meta: { unit: "open", n: openHandovers },
         href: "/compliance",
       },
-      { id: "auditTrail", state: "done", meta: `${auditTotal} events`, href: "/compliance" },
+      { id: "auditTrail", state: "done", meta: { unit: "events", n: auditTotal }, href: "/compliance" },
     ],
     actions: [
       { id: "openCompliance", href: PERSONAS.compliance.homePath, tone: "primary" },
@@ -568,9 +577,9 @@ function adminModel(
       { id: "escalations", value: String(resolvedHandovers), hint: "escalations resolved", tone: "leaf" },
     ],
     tasks: [
-      { id: "reviewAudit", state: auditTotal > 0 ? "active" : "todo", meta: `${auditTotal} events`, href: "/admin" },
-      { id: "reviewClaims", state: "todo", meta: `${session.claims.length} claims`, href: "/compliance" },
-      { id: "moderation", state: "todo", meta: `${loungeMessages} posts`, href: "/admin" },
+      { id: "reviewAudit", state: auditTotal > 0 ? "active" : "todo", meta: { unit: "events", n: auditTotal }, href: "/admin" },
+      { id: "reviewClaims", state: "todo", meta: { unit: "claims", n: session.claims.length }, href: "/compliance" },
+      { id: "moderation", state: "todo", meta: { unit: "posts", n: loungeMessages }, href: "/admin" },
       { id: "workflow", state: "todo", href: "/admin/workflow" },
     ],
     actions: [
