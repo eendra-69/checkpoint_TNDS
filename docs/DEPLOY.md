@@ -2,12 +2,32 @@
 
 ## Remotes
 
-- GitHub: `https://github.com/jrrqd/tasco-renewal-demo.git` (private), branch `main`.
-- Vercel project: `tasco-tnds-demo` (team `radr`).
-- Production alias: **https://tasco-tnds-demo.vercel.app**
-- Linked config: `app/.vercel/project.json` (`prj_1Ay6P3xopvQcH392jfuPfmZ81Y9G`).
+- GitHub: `https://github.com/eendra-69/checkpoint_TNDS.git`, branch `main`.
+  Upstream: `https://github.com/jrrqd/tasco-renewal-demo.git` (private), whose
+  own deployment is `https://tasco-tnds-demo.vercel.app` (Vercel team `radr`).
+- Vercel project: **`checkpoint-tnds`**: name it exactly that when importing,
+  so the production alias is **https://checkpoint-tnds.vercel.app**, the URL
+  `index.html`, README and AGENTS.md link to.
 
-The git working tree is the repository root, which is the Next.js app.
+The git working tree is the repository root: a static presentation site, with
+the Next.js app in `demo/`.
+
+## First deploy (dashboard)
+
+1. Vercel → **Add New… → Project** → import `eendra-69/checkpoint_TNDS`.
+2. **Project Name:** `checkpoint-tnds`. **Root Directory:** `demo`
+   (framework is detected as Next.js; leave build settings alone).
+3. Environment variables (table below): at least `AUTH_SECRET`,
+   `SETTINGS_SECRET` and `NEXT_PUBLIC_APP_URL=https://checkpoint-tnds.vercel.app`.
+   Generate each secret with
+   `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`.
+4. **Deploy.** Every push to `main` deploys again from then on.
+5. Optional, recommended for a judged demo: an Upstash Redis database
+   (console.upstash.com). Copy its REST URL and token into
+   `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` (the app reads only
+   these names), then **Redeploy**.
+6. Optional: the presentation site as a second project from the same repo,
+   Root Directory empty, framework **Other**, no build command.
 
 ## Two deployables
 
@@ -98,4 +118,4 @@ GitHub push can still succeed while Vercel Git integration stays blocked. Prefer
 
 ## After deploy
 
-Confirm https://tasco-tnds-demo.vercel.app loads, VI/EN toggle works, and customer → office still opens. In-memory sessions on serverless will **reset** between instances unless Upstash is configured.
+Confirm https://checkpoint-tnds.vercel.app loads, VI/EN toggle works, and customer → office still opens. In-memory sessions on serverless will **reset** between instances unless Upstash is configured.

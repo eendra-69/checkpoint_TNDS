@@ -9,7 +9,7 @@ This repository has two halves:
 | `index.html` + `site.css` | The presentation site — explains the demo and links into it | None. Plain HTML + CSS. |
 | `demo/` | The demo app itself — a complete Next.js 16 project | `npm install && npm run dev` |
 
-**Live demo:** https://tasco-tnds-demo.vercel.app
+**Live demo:** https://checkpoint-tnds.vercel.app
 **GitHub:** https://github.com/eendra-69/checkpoint_TNDS (private)
 
 Demo links point straight at the live deployment. The local static server still

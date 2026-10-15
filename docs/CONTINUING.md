@@ -18,7 +18,7 @@ The app:
 - Header **Tour** explains the page you are on (`demo/src/lib/page-tours.ts`); the welcome screen is the first-visit introduction.
 - Floating pitch assistant; app-wide **VI | EN** (`tasco-locale`), agent `preferredLanguage` synced on chat.
 - Claims desk is in-office demo only.
-- Production: https://tasco-tnds-demo.vercel.app (Vercel root directory must be `demo`).
+- Production: https://checkpoint-tnds.vercel.app (Vercel root directory must be `demo`).
 
 Full change history: [../CHANGELOG.md](../CHANGELOG.md).
 
